@@ -31,6 +31,8 @@ import {
   EMPTY_SELECTION_CAPTURE_STATE,
   type SelectionCaptureState,
 } from "../context/selection-snapshot.js";
+import { EMPTY_NYX_UI_STATE, type NyxUiState } from "../nyx/ui-state.js";
+import "./nyx-plan-card.js";
 
 export interface EmptyHint {
   /** Short text shown on the button. */
@@ -150,6 +152,14 @@ export class PiSidebar extends LitElement {
   @property({ attribute: false }) selectionCaptureState: SelectionCaptureState = EMPTY_SELECTION_CAPTURE_STATE;
   @property({ attribute: false }) onCaptureSelection?: () => void;
   @property({ attribute: false }) onClearSelection?: () => void;
+  @property({ attribute: false }) nyxState: NyxUiState = EMPTY_NYX_UI_STATE;
+  @property({ attribute: false }) onStartNyxPlanning?: () => void;
+  @property({ attribute: false }) onNyxObjective?: (text: string) => void;
+  @property({ attribute: false }) onApproveNyxPlan?: () => void;
+  @property({ attribute: false }) onReviseNyxPlan?: () => void;
+  @property({ attribute: false }) onRejectNyxPlan?: () => void;
+  @property({ attribute: false }) onCancelNyxRun?: () => void;
+  @property({ attribute: false }) onRollbackNyxRun?: () => void;
 
   @state() private _hasMessages = false;
   @state() private _isStreaming = false;
@@ -535,7 +545,11 @@ export class PiSidebar extends LitElement {
 
   private _onSend = (e: CustomEvent<{ text: string }>) => {
     this._autoScroll = true;
-    this.onSend?.(e.detail.text);
+    if (this.nyxState.status === "planning" || this.nyxState.status === "clarification" || this.nyxState.status === "error") {
+      this.onNyxObjective?.(e.detail.text);
+    } else {
+      this.onSend?.(e.detail.text);
+    }
     this._input?.clear();
   };
 
@@ -734,8 +748,17 @@ export class PiSidebar extends LitElement {
       <div id="pi-widget-slot" class="pi-widget-slot" style="display:none"></div>
       <div class="pi-input-area">
         ${this._renderSelectionCard()}
+        <nyx-plan-card
+          .state=${this.nyxState}
+          .onApprove=${this.onApproveNyxPlan}
+          .onRevise=${this.onReviseNyxPlan}
+          .onReject=${this.onRejectNyxPlan}
+          .onCancel=${this.onCancelNyxRun}
+          .onRollback=${this.onRollbackNyxRun}
+        ></nyx-plan-card>
         <pi-input
           .isStreaming=${this._isStreaming}
+          .placeholderText=${this.nyxState.status === "planning" || this.nyxState.status === "clarification" || this.nyxState.status === "error" ? t("nyx.plan.objective_placeholder") : ""}
           @pi-send=${this._onSend}
           @pi-abort=${this._onAbort}
           @pi-files-drop=${this._onFilesDrop}
@@ -778,6 +801,12 @@ export class PiSidebar extends LitElement {
               aria-label=${t("sidebar.selection.clear.aria")}
               @click=${this.onClearSelection}
             >${t("sidebar.selection.clear")}</button>
+            <button
+              type="button"
+              class="pi-selection-card__button pi-selection-card__button--primary"
+              @click=${this.onStartNyxPlanning}
+              ?disabled=${this.nyxState.status === "planning" || this.nyxState.status === "running"}
+            >${t("nyx.plan.start")}</button>
           </div>
         </section>
       `;

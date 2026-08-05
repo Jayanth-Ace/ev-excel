@@ -2,6 +2,31 @@ function isTaskpaneInitPayloadShape(value: DynamicValue): value is DynamicObject
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function normalizedAddressPart(address: string): { sheet: string; cells: string } | null {
+  const bang = address.lastIndexOf("!");
+  if (bang <= 0 || bang === address.length - 1) return null;
+  return { sheet: address.slice(0, bang).toUpperCase(), cells: address.slice(bang + 1).replaceAll("$", "").toUpperCase() };
+}
+
+function nyxApprovedTargetMatches(scope: NyxApprovalScope, toolName: string, params: DynamicValue): boolean {
+  if (!isTaskpaneInitPayloadShape(params) || scope.capability !== toolName) return false;
+  const target = normalizedAddressPart(scope.targetAddress);
+  if (!target) return false;
+  if (toolName === "fill_formula" || toolName === "format_cells") {
+    if (typeof params.range !== "string") return false;
+    const range = normalizedAddressPart(params.range);
+    return range?.sheet === target.sheet && range.cells === target.cells;
+  }
+  if (toolName !== "write_cells" || typeof params.start_cell !== "string" || !Array.isArray(params.values)) return false;
+  const start = normalizedAddressPart(params.start_cell);
+  const rows = params.values.length;
+  const rowLengths = params.values.map((row: DynamicValue) => Array.isArray(row) ? row.length : 0);
+  const cols = Math.max(...rowLengths, 0);
+  if (!start || rows < 1 || cols < 1) return false;
+  const expected = normalizedAddressPart(`${start.sheet}!${computeRangeAddress(start.cells, rows, cols)}`);
+  return expected?.sheet === target.sheet && expected.cells === target.cells;
+}
+
 /**
  * Taskpane initialization.
  *
@@ -10,11 +35,12 @@ function isTaskpaneInitPayloadShape(value: DynamicValue): value is DynamicObject
  */
 
 import { html, render } from "lit";
-import { Agent } from "@earendil-works/pi-agent-core";
+import { Agent, type AgentTool } from "@earendil-works/pi-agent-core";
 import { getAppStorage } from "../storage/local/app-storage.js";
 import type { SessionData } from "../storage/local/types.js";
 
 import { createOfficeStreamFn } from "../auth/stream-proxy.js";
+import { computeRangeAddress } from "../excel/helpers.js";
 import {
   DEFAULT_PROXY_URL,
   PROXY_HELPER_DOCS_URL,
@@ -189,6 +215,17 @@ import {
   normalizeRuntimeTools,
 } from "./runtime-utils.js";
 import { doesOverlayClaimEscape } from "../utils/escape-guard.js";
+import { Value } from "typebox/value";
+import {
+  NYX_PLANNING_TOOL_NAMES,
+  type NyxContextSnapshot,
+  type NyxObjective,
+  type NyxPersistedState,
+} from "../nyx/domain.js";
+import { createNyxPlanner } from "../nyx/planner.js";
+import { EMPTY_NYX_UI_STATE, type NyxUiState } from "../nyx/ui-state.js";
+import { createNyxRunController, type NyxApprovalScope } from "../nyx/run-controller.js";
+import { extractNyxRangeSnapshot, verifyNyxStep } from "../nyx/verification.js";
 
 function showErrorBanner(errorRoot: HTMLElement, message: string): void {
   render(renderError(message), errorRoot);
@@ -612,6 +649,11 @@ export async function initTaskpane(opts: {
   const abortedAgents = new WeakSet<Agent>();
   const runtimeCapabilityRefreshers = new Map<string, () => Promise<void>>();
   const runtimeActiveIntegrationIds = new Map<string, string[]>();
+  const runtimeNyxPlanners = new Map<string, ReturnType<typeof createNyxPlanner>>();
+  const runtimeNyxRunControllers = new Map<string, ReturnType<typeof createNyxRunController>>();
+  const runtimeNyxStates = new Map<string, NyxUiState>();
+  const runtimeNyxApprovalScopes = new Map<string, NyxApprovalScope>();
+  const runtimeNyxAbortControllers = new Map<string, AbortController>();
   const recentlyClosed = new RecentlyClosedStack(10);
 
   const getActiveRuntime = () => runtimeManager.getActiveRuntime();
@@ -619,6 +661,46 @@ export async function initTaskpane(opts: {
   const getActiveQueueDisplay = () => getActiveRuntime()?.queueDisplay ?? null;
   const getActiveActionQueue = () => getActiveRuntime()?.actionQueue ?? null;
   const getActiveLockState = () => getActiveRuntime()?.lockState ?? "idle";
+
+  const updateNyxState = (runtimeId: string, state: NyxUiState): void => {
+    runtimeNyxStates.set(runtimeId, state);
+    if (runtimeManager.getActiveRuntime()?.runtimeId === runtimeId) {
+      sidebar.nyxState = state;
+      sidebar.requestUpdate();
+    }
+  };
+
+  const persistNyxState = async (runtimeId: string, state: NyxUiState): Promise<void> => {
+    const runtime = runtimeManager.getRuntime(runtimeId);
+    if (!runtime) return;
+
+    let persisted: NyxPersistedState | undefined;
+    if (state.status !== "inactive") {
+      const plan = "plan" in state ? state.plan : undefined;
+      const run = "run" in state ? state.run : undefined;
+      const objective = plan?.objective;
+      const context = plan?.context;
+      persisted = {
+        version: 1,
+        ...(objective ? { objective } : {}),
+        ...(context ? { context } : {}),
+        ...(plan ? { plan } : {}),
+        ...(run ? { run } : {}),
+      };
+    }
+    await runtime.persistence.setNyxState(persisted);
+  };
+
+  const restoreNyxState = (state: NyxPersistedState | undefined): NyxUiState => {
+    if (!state?.plan) return EMPTY_NYX_UI_STATE;
+    if (!state.run) return { status: "planned", plan: state.plan };
+    if (state.run.status === "approved") return { status: "approved", plan: state.plan, run: state.run };
+    if (state.run.status === "running") return { status: "running", plan: state.plan, run: state.run };
+    if (state.run.status === "execution_completed") return { status: "execution_completed", plan: state.plan, run: state.run };
+    if (state.run.status === "failed") return { status: "failed", plan: state.plan, run: state.run };
+    if (state.run.status === "cancelled") return { status: "cancelled", plan: state.plan, run: state.run };
+    return { status: "planned", plan: state.plan };
+  };
 
   const areRuntimeModelsEquivalent = (
     left: Agent["state"]["model"],
@@ -733,6 +815,21 @@ export async function initTaskpane(opts: {
     showToast(t("init.revertedAddress", { address }));
   };
 
+  const restoreCheckpointForNyx = async (snapshotId: string, sessionIdOverride?: string): Promise<{ inverseSnapshotId: string | null }> => {
+    const sessionId = sessionIdOverride ?? crypto.randomUUID();
+    const workbookId = await resolveWorkbookId();
+    const restored = await workbookCoordinator.runWrite(
+      {
+        workbookId: workbookId ?? "workbook:unknown",
+        sessionId,
+        opId: crypto.randomUUID(),
+        toolName: "workbook_history",
+      },
+      () => workbookRecoveryLog.restore(snapshotId),
+    );
+    return { inverseSnapshotId: restored.result.inverseSnapshotId };
+  };
+
   const toRecoveryCheckpointSummary = (
     snapshot: WorkbookRecoverySnapshot,
   ): RecoveryCheckpointSummary => ({
@@ -809,6 +906,9 @@ export async function initTaskpane(opts: {
     sidebar.requestUpdate();
 
     const activeRuntimeId = tabs.find((tab) => tab.isActive)?.runtimeId ?? null;
+    sidebar.nyxState = activeRuntimeId
+      ? runtimeNyxStates.get(activeRuntimeId) ?? EMPTY_NYX_UI_STATE
+      : EMPTY_NYX_UI_STATE;
     if (activeRuntimeId !== previousActiveRuntimeId) {
       previousActiveRuntimeId = activeRuntimeId;
       document.dispatchEvent(new CustomEvent("pi:active-runtime-changed"));
@@ -821,6 +921,152 @@ export async function initTaskpane(opts: {
     maybePersistTabLayout();
     document.dispatchEvent(new CustomEvent("pi:status-update"));
   });
+
+  const updateActiveNyxState = (state: NyxUiState): void => {
+    const runtime = getActiveRuntime();
+    if (!runtime) return;
+    updateNyxState(runtime.runtimeId, state);
+    void persistNyxState(runtime.runtimeId, state).catch((error: DynamicValue) => {
+      console.warn("[nyx] Plan state persistence failed:", error);
+    });
+  };
+
+  const startNyxPlanning = (): void => {
+    if (selectionCaptureState.status !== "captured") {
+      showToast(t("nyx.plan.capture_required"));
+      return;
+    }
+    const runtime = getActiveRuntime();
+    if (!runtime || runtime.agent.state.isStreaming || runtime.actionQueue.isBusy()) {
+      showToast(t("nyx.plan.chat_busy"));
+      return;
+    }
+    updateActiveNyxState({ status: "planning", objective: "" });
+    const input = sidebar.getInput();
+    if (input) {
+      input.clear();
+      input.focus();
+    }
+  };
+
+  const planNyxObjective = async (text: string): Promise<void> => {
+    const objectiveText = text.trim();
+    const runtime = getActiveRuntime();
+    const selection = selectionCaptureState.status === "captured" ? selectionCaptureState.snapshot : null;
+    if (!runtime || !selection || objectiveText.length === 0) return;
+    if (runtime.agent.state.isStreaming || runtime.actionQueue.isBusy()) {
+      showToast(t("nyx.plan.chat_busy"));
+      return;
+    }
+    if (!selection.workbookId) {
+      updateActiveNyxState({ status: "error", message: t("nyx.plan.identity_required") });
+      return;
+    }
+
+    const previousState = runtimeNyxStates.get(runtime.runtimeId);
+    const previousPlan = previousState && "plan" in previousState ? previousState.plan : undefined;
+    const objective: NyxObjective = {
+      text: objectiveText,
+      revision: (previousPlan?.objective.revision ?? 0) + 1,
+    };
+    const context: NyxContextSnapshot = {
+      workbookId: selection.workbookId,
+      selectionAddress: selection.address,
+      selectionPreview: selection.preview,
+      capturedAt: selection.capturedAt,
+    };
+    updateActiveNyxState({ status: "planning", objective: objectiveText });
+
+    const planner = runtimeNyxPlanners.get(runtime.runtimeId);
+    if (!planner) {
+      updateActiveNyxState({ status: "error", message: t("nyx.plan.unavailable") });
+      return;
+    }
+
+    const planningTools = runtime.agent.state.tools.filter((tool) =>
+      NYX_PLANNING_TOOL_NAMES.includes(tool.name as typeof NYX_PLANNING_TOOL_NAMES[number]),
+    );
+    // Runtime tools are already normalized by the existing composition path;
+    // the name filter above is the safety invariant for this boundary.
+    const result = await planner.generate(objective, context, planningTools as AgentTool[]);
+    if (result.kind === "plan") {
+      updateActiveNyxState({ status: "planned", plan: result.plan });
+      return;
+    }
+    if (result.kind === "clarification") {
+      updateActiveNyxState({ status: "clarification", questions: result.questions });
+      return;
+    }
+    updateActiveNyxState({ status: "error", message: result.message });
+  };
+
+  const reviseNyxPlan = (): void => {
+    const runtime = getActiveRuntime();
+    const state = runtime ? runtimeNyxStates.get(runtime.runtimeId) : undefined;
+    const objective = state && "plan" in state ? state.plan.objective.text : "";
+    updateActiveNyxState({ status: "planning", objective });
+    const input = sidebar.getInput();
+    if (input) {
+      input.value = objective;
+      input.focus();
+      const textarea = input.getTextarea();
+      textarea?.setSelectionRange(textarea.value.length, textarea.value.length);
+    }
+  };
+
+  const rejectNyxPlan = (): void => {
+    updateActiveNyxState(EMPTY_NYX_UI_STATE);
+    sidebar.getInput()?.clear();
+  };
+
+  const approveNyxPlan = async (): Promise<void> => {
+    const runtime = getActiveRuntime();
+    const state = runtime ? runtimeNyxStates.get(runtime.runtimeId) : undefined;
+    if (!runtime || !state || state.status !== "planned") return;
+    const controller = runtimeNyxRunControllers.get(runtime.runtimeId);
+    if (!controller) {
+      updateNyxState(runtime.runtimeId, { status: "error", message: t("nyx.plan.unavailable") });
+      return;
+    }
+
+    const abortController = new AbortController();
+    runtimeNyxAbortControllers.set(runtime.runtimeId, abortController);
+    try {
+      const run = await controller.approve(state.plan);
+      await controller.execute(state.plan, run, abortController.signal);
+    } catch (error) {
+      updateNyxState(runtime.runtimeId, {
+        status: "error",
+        message: error instanceof Error ? error.message : t("nyx.plan.execution_failed"),
+      });
+    } finally {
+      runtimeNyxAbortControllers.delete(runtime.runtimeId);
+    }
+  };
+
+  const cancelNyxRun = (): void => {
+    const runtime = getActiveRuntime();
+    if (!runtime) return;
+    runtimeNyxAbortControllers.get(runtime.runtimeId)?.abort();
+  };
+
+  const rollbackNyxRun = (): void => {
+    const runtime = getActiveRuntime();
+    const state = runtime ? runtimeNyxStates.get(runtime.runtimeId) : undefined;
+    const controller = runtime ? runtimeNyxRunControllers.get(runtime.runtimeId) : undefined;
+    if (!runtime || !controller || !state || !("run" in state)) return;
+    void controller.rollback(state.run).catch((error: DynamicValue) => {
+      showToast(error instanceof Error ? error.message : t("nyx.plan.rollback_failed"));
+    });
+  };
+
+  sidebar.onStartNyxPlanning = startNyxPlanning;
+  sidebar.onNyxObjective = (text) => { void planNyxObjective(text); };
+  sidebar.onReviseNyxPlan = reviseNyxPlan;
+  sidebar.onRejectNyxPlan = rejectNyxPlan;
+  sidebar.onApproveNyxPlan = () => { void approveNyxPlan(); };
+  sidebar.onCancelNyxRun = cancelNyxRun;
+  sidebar.onRollbackNyxRun = rollbackNyxRun;
 
   const runCapabilityRefreshPass = async (): Promise<void> => {
     const runtimes = runtimeManager.listRuntimes();
@@ -1045,6 +1291,10 @@ export async function initTaskpane(opts: {
         },
         {
           getExecutionMode: () => Promise.resolve(getExecutionMode()),
+          isNyxMutationApproved: (toolName, params) => {
+            const scope = runtimeNyxApprovalScopes.get(runtimeId);
+            return scope ? nyxApprovedTargetMatches(scope, toolName, params) : false;
+          },
           requestMutationApproval: (request) => {
             return requestRuntimeToolApproval({
               title: t("init.confirm.safeModeMutationTitle"),
@@ -1174,6 +1424,82 @@ export async function initTaskpane(opts: {
     runtimeSessionId = persistence.getSessionId();
     await refreshRuntimeCapabilities();
 
+    const nyxPlanner = createNyxPlanner({
+      agent: {
+        run: async ({ prompt, readOnlyTools, submissionTool }) => {
+          const planningAgent = new Agent({
+            initialState: {
+              systemPrompt: "You are Nyx's bounded planning agent. Return only through the structured submission tool.",
+              model: agent.state.model,
+              thinkingLevel: agent.state.thinkingLevel,
+              messages: [],
+              tools: [...readOnlyTools, submissionTool],
+            },
+            convertToLlm: createConvertToLlm({
+              getContextWindow: () => agent.state.model.contextWindow,
+            }),
+            streamFn,
+          });
+          if (agent.getApiKey) {
+            planningAgent.getApiKey = agent.getApiKey;
+          }
+          await planningAgent.prompt(prompt);
+          if (planningAgent.state.errorMessage) {
+            throw new Error(planningAgent.state.errorMessage);
+          }
+        },
+      },
+      validateCapabilityParameters: (capability, parameters) => {
+        const tool = agent.state.tools.find((candidate) => candidate.name === capability);
+        return tool ? Value.Check(tool.parameters, parameters) : false;
+      },
+    });
+    runtimeNyxPlanners.set(runtimeId, nyxPlanner);
+    runtimeNyxStates.set(runtimeId, restoreNyxState(persistence.getNyxState()));
+
+    const nyxRunController = createNyxRunController({
+      getWorkbookId: resolveWorkbookId,
+      getSelectionAddress: async () => (await readSelectionContext())?.address ?? null,
+      getTools: () => agent.state.tools,
+      verifyStep: (step) => verifyNyxStep(step, async (address) => {
+        const readTool = agent.state.tools.find((tool) => tool.name === "read_range");
+        if (!readTool) return null;
+        const result = await readTool.execute(`nyx:verify:${step.id}`, { range: address, mode: "detailed" });
+        return extractNyxRangeSnapshot(result);
+      }),
+      restoreCheckpoint: (snapshotId) => restoreCheckpointForNyx(
+        snapshotId,
+        runtimeManager.getRuntime(runtimeId)?.persistence.getSessionId() ?? runtimeSessionId,
+      ),
+      persist: async (run) => {
+        const currentState = runtimeNyxStates.get(runtimeId);
+        if (!currentState || !("plan" in currentState)) return;
+        const status = run.status === "approved"
+          ? "approved"
+          : run.status === "running"
+            ? "running"
+            : run.status === "execution_completed"
+              ? "execution_completed"
+              : run.status === "failed"
+                ? "failed"
+                : "cancelled";
+        const nextState: NyxUiState = { status, plan: currentState.plan, run };
+        updateNyxState(runtimeId, nextState);
+        await persistNyxState(runtimeId, nextState);
+      },
+      runWithApprovalScope: async (scope, operation) => {
+        const previous = runtimeNyxApprovalScopes.get(runtimeId);
+        runtimeNyxApprovalScopes.set(runtimeId, scope);
+        try {
+          return await operation();
+        } finally {
+          if (previous) runtimeNyxApprovalScopes.set(runtimeId, previous);
+          else runtimeNyxApprovalScopes.delete(runtimeId);
+        }
+      },
+    });
+    runtimeNyxRunControllers.set(runtimeId, nyxRunController);
+
     let observedSessionId = runtimeSessionId;
     const unsubscribeSessionCapabilitySync = persistence.subscribe(() => {
       const nextSessionId = persistence.getSessionId();
@@ -1241,6 +1567,12 @@ export async function initTaskpane(opts: {
         dispose: () => {
           runtimeCapabilityRefreshers.delete(runtimeId);
           runtimeActiveIntegrationIds.delete(runtimeId);
+          runtimeNyxPlanners.delete(runtimeId);
+          runtimeNyxRunControllers.delete(runtimeId);
+          runtimeNyxStates.delete(runtimeId);
+          runtimeNyxApprovalScopes.delete(runtimeId);
+          runtimeNyxAbortControllers.get(runtimeId)?.abort();
+          runtimeNyxAbortControllers.delete(runtimeId);
           runtimeSkillReadCache.clearAll();
           unsubscribeSessionCapabilitySync();
           unsubscribeErrorTracking();
@@ -1309,6 +1641,10 @@ export async function initTaskpane(opts: {
   };
 
   const syncRuntimeAfterSessionLoad = (runtime: SessionRuntime): void => {
+    runtimeNyxStates.set(runtime.runtimeId, restoreNyxState(runtime.persistence.getNyxState()));
+    if (runtimeManager.getActiveRuntime()?.runtimeId === runtime.runtimeId) {
+      sidebar.nyxState = runtimeNyxStates.get(runtime.runtimeId) ?? EMPTY_NYX_UI_STATE;
+    }
     runtime.queueDisplay.clear();
     runtime.queueDisplay.setActionQueue([]);
     sidebar.syncFromAgent();

@@ -180,6 +180,15 @@ export interface ReadRangeCsvDetails {
   csv: string;
 }
 
+/** Structured read-back data for deterministic Nyx verification. */
+export interface NyxReadRangeDetails {
+  kind: "nyx_read_range_snapshot";
+  address: string;
+  values: DynamicValue[][];
+  formulas: DynamicValue[][];
+  numberFormats: DynamicValue[][];
+}
+
 export type BridgeGateReason = "missing_bridge_url" | "invalid_bridge_url" | "bridge_unreachable";
 
 export interface TmuxBridgeDetails {
@@ -449,6 +458,7 @@ export type ExcelToolDetails =
   | TraceDependenciesDetails
   | ExplainFormulaDetails
   | ReadRangeCsvDetails
+  | NyxReadRangeDetails
   | TmuxBridgeDetails
   | PythonBridgeDetails
   | LibreOfficeBridgeDetails

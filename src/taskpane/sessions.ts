@@ -9,6 +9,7 @@
 
 import type { Models } from "@earendil-works/pi-ai";
 import type { Agent, AgentMessage } from "@earendil-works/pi-agent-core";
+import type { NyxPersistedState } from "../nyx/domain.js";
 import type { SessionData } from "../storage/local/types.js";
 import type { SessionsStore } from "../storage/local/sessions-store.js";
 import type { SettingsStore } from "../storage/local/settings-store.js";
@@ -27,6 +28,8 @@ export interface SessionPersistenceController {
   applyLoadedSession: (sessionData: SessionData) => Promise<void>;
   restoreLatestSession: () => Promise<boolean>;
   saveSession: (opts?: { force?: boolean }) => Promise<void>;
+  getNyxState: () => NyxPersistedState | undefined;
+  setNyxState: (state: NyxPersistedState | undefined) => Promise<void>;
   subscribe: (listener: () => void) => () => void;
   dispose: () => void;
 }
@@ -139,6 +142,7 @@ export async function setupSessionPersistence(opts: {
   let sessionCreatedAt = new Date().toISOString();
   let firstAssistantSeen = false;
   let explicitTitle = false;
+  let nyxState: NyxPersistedState | undefined;
 
   agent.sessionId = sessionId;
 
@@ -255,6 +259,7 @@ export async function setupSessionPersistence(opts: {
           preview,
         },
         sessionTitle,
+        nyxState,
       );
 
       await updateWorkbookAssociation(savedSessionId);
@@ -270,6 +275,7 @@ export async function setupSessionPersistence(opts: {
     sessionCreatedAt = new Date().toISOString();
     firstAssistantSeen = false;
     explicitTitle = false;
+    nyxState = undefined;
     agent.sessionId = sessionId;
     emitChange();
   }
@@ -291,6 +297,7 @@ export async function setupSessionPersistence(opts: {
     sessionTitle = sessionData.title || "";
     explicitTitle = false;
     sessionCreatedAt = sessionData.createdAt;
+    nyxState = sessionData.nyxState;
     firstAssistantSeen = hasAssistantMessage(sessionData.messages);
 
     agent.sessionId = sessionId;
@@ -362,6 +369,12 @@ export async function setupSessionPersistence(opts: {
     applyLoadedSession,
     restoreLatestSession,
     saveSession,
+    getNyxState: () => nyxState,
+    async setNyxState(state: NyxPersistedState | undefined): Promise<void> {
+      nyxState = state;
+      await saveSession({ force: true });
+      emitChange();
+    },
     subscribe(listener: () => void): () => void {
       listeners.add(listener);
       return () => listeners.delete(listener);

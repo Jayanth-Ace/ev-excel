@@ -8,6 +8,7 @@
 @import "./components/tabs.css";
 @import "./components/input.css";
 @import "./components/selection.css";
+@import "./components/nyx-plan.css";
 @import "./components/empty-state.css";
 @import "./components/working-indicator.css";
 @import "./components/widgets.css";

@@ -14,7 +14,7 @@ import { formatAsMarkdownTable, extractFormulas, findErrors } from "../utils/for
 import { getErrorMessage } from "../utils/errors.js";
 import { buildResolvedFormatLabels, getResolvedConventions, humanizeFormat } from "../conventions/index.js";
 import { getAppStorage } from "../storage/local/app-storage.js";
-import type { ReadRangeCsvDetails } from "./tool-details.js";
+import type { NyxReadRangeDetails, ReadRangeCsvDetails } from "./tool-details.js";
 
 const schema = Type.Object({
   range: Type.String({
@@ -66,7 +66,7 @@ export function createReadRangeTool(): AgentTool<typeof schema> {
     execute: async (
       _toolCallId: string,
       params: Params,
-    ): Promise<AgentToolResult<ReadRangeCsvDetails | undefined>> => {
+    ): Promise<AgentToolResult<ReadRangeCsvDetails | NyxReadRangeDetails | undefined>> => {
       try {
         const mode = params.mode || "compact";
 
@@ -133,10 +133,11 @@ export function createReadRangeTool(): AgentTool<typeof schema> {
         const colonIndex = cellPart.indexOf(":");
         const startCell = colonIndex >= 0 ? cellPart.slice(0, colonIndex) : cellPart;
 
+        let output: AgentToolResult<ReadRangeCsvDetails | undefined>;
         if (mode === "compact") {
-          return formatCompact(fullAddress, result, startCell);
+          output = formatCompact(fullAddress, result, startCell);
         } else if (mode === "csv") {
-          return formatCsvOutput(fullAddress, result, startCell);
+          output = formatCsvOutput(fullAddress, result, startCell);
         } else {
           let resolvedLabels: Map<string, string> | undefined;
           try {
@@ -146,8 +147,19 @@ export function createReadRangeTool(): AgentTool<typeof schema> {
             // Ignore conventions lookup failures in read-only output.
           }
 
-          return formatDetailed(fullAddress, result, startCell, resolvedLabels);
+          output = formatDetailed(fullAddress, result, startCell, resolvedLabels);
         }
+        if (mode !== "detailed") return output;
+        return {
+          ...output,
+          details: {
+            kind: "nyx_read_range_snapshot",
+            address: fullAddress,
+            values: result.values,
+            formulas: result.formulas,
+            numberFormats: result.numberFormats,
+          },
+        };
       } catch (e) {
         return {
           content: [{ type: "text", text: `Error reading "${params.range}": ${getErrorMessage(e)}` }],

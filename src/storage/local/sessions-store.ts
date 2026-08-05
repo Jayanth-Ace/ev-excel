@@ -11,6 +11,7 @@ import type { Api, Model } from "@earendil-works/pi-ai";
 
 import { Store } from "./store.js";
 import type { SessionData, SessionMetadata, StoreConfig } from "./types.js";
+import type { NyxPersistedState } from "../../nyx/domain.js";
 
 export class SessionsStore extends Store {
   getConfig(): StoreConfig {
@@ -105,6 +106,7 @@ export class SessionsStore extends Store {
     state: AgentState,
     metadata: SessionMetadata | undefined,
     title?: string,
+    nyxState?: NyxPersistedState,
   ): Promise<void> {
     // If metadata is provided, use it; otherwise create it from state
     const meta: SessionMetadata = metadata ?? {
@@ -136,6 +138,7 @@ export class SessionsStore extends Store {
       messages: state.messages,
       createdAt: meta.createdAt,
       lastModified: new Date().toISOString(),
+      ...(nyxState ? { nyxState } : {}),
     };
     await this.save(data, meta);
   }

@@ -1,0 +1,37 @@
+.nyx-plan-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 7px;
+  padding: 10px;
+  border: var(--pill-border);
+  border-radius: var(--radius-md);
+  background: var(--pill-bg);
+  box-shadow: var(--pill-shadow);
+  color: var(--foreground);
+  font-size: var(--text-xs);
+  line-height: 1.4;
+}
+
+.nyx-plan-card--notice { border-color: var(--green-alpha-25); }
+.nyx-plan-card--error, .nyx-plan-card__error { color: var(--destructive); }
+.nyx-plan-card__header { display: flex; justify-content: space-between; gap: 8px; }
+.nyx-plan-card__header > div { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
+.nyx-plan-card__eyebrow { color: var(--muted-foreground); font-size: var(--text-xs); font-weight: 700; letter-spacing: .05em; text-transform: uppercase; }
+.nyx-plan-card__status { flex: none; color: var(--muted-foreground); font-weight: 700; }
+.nyx-plan-card__section { display: flex; flex-direction: column; gap: 3px; }
+.nyx-plan-card ul, .nyx-plan-card ol { margin: 0; padding-left: 18px; }
+.nyx-plan-card__steps { display: flex; flex-direction: column; gap: 6px; list-style: none; padding: 0; }
+.nyx-plan-card__step { display: flex; gap: 7px; }
+.nyx-plan-card__step-number { display: grid; width: 19px; height: 19px; flex: none; place-items: center; border-radius: var(--radius-full); background: var(--pi-green); color: white; font-size: 11px; font-weight: 700; }
+.nyx-plan-card__step-content { display: flex; min-width: 0; flex-direction: column; gap: 1px; }
+.nyx-plan-card__step-content small { color: var(--muted-foreground); font-family: var(--font-mono); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.nyx-plan-card__progress { display: flex; flex-wrap: wrap; gap: 5px; color: var(--muted-foreground); }
+.nyx-plan-card__progress-step--completed { color: var(--pi-green-strong); }
+.nyx-plan-card__progress-step--failed { color: var(--destructive); }
+.nyx-plan-card__notice { margin: 0; color: var(--muted-foreground); }
+.nyx-plan-card__actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.nyx-plan-card__button { min-height: 26px; padding: 4px 9px; border: 1px solid var(--alpha-10); border-radius: var(--radius-sm); background: var(--white-alpha-55); color: var(--foreground); cursor: pointer; font: inherit; font-weight: 600; }
+.nyx-plan-card__button:hover { border-color: var(--green-alpha-25); background: var(--green-alpha-6); }
+.nyx-plan-card__button--primary { border-color: transparent; background: var(--pi-green); color: white; }
+.nyx-plan-card code { font-family: var(--font-mono); }

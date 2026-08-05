@@ -45,6 +45,8 @@ export interface WorkbookExecutionPolicy {
    * Return `true` to proceed, `false` to block.
    */
   requestMutationApproval?: (request: MutationApprovalRequest) => Promise<boolean>;
+  /** Return true only while an explicitly approved Nyx step is executing. */
+  isNyxMutationApproved?: (toolName: string, params: DynamicValue) => boolean;
 }
 
 function makeContext(args: {
@@ -124,6 +126,10 @@ async function requireMutationApprovalIfNeeded(args: {
   const executionMode = await getExecutionMode();
 
   if (executionMode !== "safe") {
+    return;
+  }
+
+  if (args.policy.isNyxMutationApproved?.(args.toolName, args.params) === true) {
     return;
   }
 

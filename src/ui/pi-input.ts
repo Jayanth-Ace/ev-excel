@@ -34,6 +34,7 @@ function getPlaceholderHintKey(index: number): string {
 @customElement("pi-input")
 export class PiInput extends LitElement {
   @property({ type: Boolean }) isStreaming = false;
+  @property({ type: String }) placeholderText = "";
 
   @state() private _value = "";
   @state() private _placeholderIndex = 0;
@@ -231,7 +232,7 @@ export class PiInput extends LitElement {
         <textarea
           class="pi-input-textarea"
           .value=${this._value}
-          placeholder=${this.isStreaming ? t("input.streaming.placeholder") : t(getPlaceholderHintKey(this._placeholderIndex))}
+          placeholder=${this.isStreaming ? t("input.streaming.placeholder") : (this.placeholderText || t(getPlaceholderHintKey(this._placeholderIndex)))}
           rows="1"
           aria-label=${t("input.chat.aria")}
           autocomplete="off"

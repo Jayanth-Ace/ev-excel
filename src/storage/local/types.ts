@@ -8,6 +8,7 @@
 
 import type { AgentMessage, ThinkingLevel } from "@earendil-works/pi-agent-core";
 import type { Api, Model } from "@earendil-works/pi-ai";
+import type { NyxPersistedState } from "../../nyx/domain.js";
 
 /**
  * Transaction interface for atomic operations across stores.
@@ -133,6 +134,8 @@ export interface SessionData {
   createdAt: string;
   /** ISO 8601 UTC timestamp of last modification */
   lastModified: string;
+  /** Optional Nyx plan/run state; absent for legacy Pi sessions. */
+  nyxState?: NyxPersistedState;
 }
 
 /**
