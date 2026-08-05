@@ -334,7 +334,7 @@ void test("pickDefaultModel matches the current OpenAI default-selection contrac
 void test("pickDefaultModel falls back to the preferred hardcoded OpenAI default", () => {
   const selected = pickDefaultModel([]);
   assert.equal(selected.provider, "openai");
-  assert.equal(selected.id, "gpt-5.6-sol");
+  assert.equal(selected.id, "gpt-5.4-mini");
 });
 
 void test("pickDefaultModel never picks an unusable provider while a configured provider has models (#553)", () => {
@@ -356,7 +356,7 @@ void test("pickDefaultModel never picks an unusable provider while a configured 
 void test("pickDefaultModel tolerates unknown provider names", () => {
   const selected = pickDefaultModel(["some-custom-gateway"]);
   assert.equal(selected.provider, "openai");
-  assert.equal(selected.id, "gpt-5.6-sol");
+  assert.equal(selected.id, "gpt-5.4-mini");
 });
 
 void test("pickDefaultModel prefers GPT-5.6 Sol when OpenAI and Anthropic are both available", () => {

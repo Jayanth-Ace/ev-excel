@@ -145,8 +145,8 @@ export function pickDefaultModel(
   }
 
   // Absolute fallback: keep this resilient across pi-ai version bumps.
-  // Sol is the maintainer-preferred GPT-5.6 quality tier.
-  const preferredFallback = modelsRuntime.getModel("openai", "gpt-5.6-sol");
+  // Keep a stable, broadly available OpenAI fallback across pi-ai registry changes.
+  const preferredFallback = modelsRuntime.getModel("openai", "gpt-5.4-mini");
   if (preferredFallback) return preferredFallback;
 
   const firstKnownModel = modelsRuntime.getModels()[0];

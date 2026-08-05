@@ -7,12 +7,12 @@ import { getBuiltinModel } from "@earendil-works/pi-ai/providers/all";
 
 import { resolveRuntimeModelSwap } from "../src/taskpane/runtime-model-reconcile.ts";
 
-const openaiApiModel = getBuiltinModel("openai", "gpt-5.6-sol");
-const codexModel = getBuiltinModel("openai-codex", "gpt-5.6-sol");
+const openaiApiModel = getBuiltinModel("openai", "gpt-5.4-mini");
+const codexModel = getBuiltinModel("openai-codex", "gpt-5.4-mini");
 
 void test("swaps a runtime stuck on an unconfigured provider to the default model (#553)", () => {
   // Fresh-install flow: runtime created with the absolute fallback
-  // (openai/gpt-5.6-sol) before login, then the user connects ChatGPT.
+  // (openai/gpt-5.4-mini) before login, then the user connects ChatGPT.
   const swap = resolveRuntimeModelSwap({
     currentModel: openaiApiModel,
     availableProviders: ["openai-codex"],
@@ -22,7 +22,7 @@ void test("swaps a runtime stuck on an unconfigured provider to the default mode
 
   assert.ok(swap, "expected a swap for an unusable provider");
   assert.equal(swap.model.provider, "openai-codex");
-  assert.equal(swap.model.id, "gpt-5.6-sol");
+  assert.equal(swap.model.id, "gpt-5.4-mini");
   assert.equal(swap.thinkingLevel, codexModel.reasoning ? "high" : "off");
 });
 
@@ -65,7 +65,7 @@ void test("does not swap when no providers are configured", () => {
 
 void test("does not swap onto a default model whose provider is also unusable", () => {
   // e.g. copilot-only setups where the default-model rules used to fall back
-  // to openai/gpt-5.6-sol — trading one wrong API-key prompt for another.
+  // to openai/gpt-5.4-mini — trading one wrong API-key prompt for another.
   const swap = resolveRuntimeModelSwap({
     currentModel: getBuiltinModel("anthropic", "claude-opus-4-8"),
     availableProviders: ["github-copilot"],
