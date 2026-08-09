@@ -8,15 +8,22 @@ import os from "os";
 import http from "node:http";
 import net from "node:net";
 import { commandPath, ensureOllamaServer } from "./scripts/ev-environment.mjs";
+import { validateDevCertificates } from "./scripts/certificates.mjs";
 
 type OllamaStartResult = { reachable: boolean; models: string[] };
 type OllamaStarter = (options: { executable: string | null; timeoutMs: number }) => Promise<OllamaStartResult>;
 type CommandResolver = (command: string) => string | null;
+type CertificateValidation = { valid: boolean; reason: string };
 
 // The environment helper is an executable .mjs module, so Vite cannot infer its
 // export types. Keep the boundary assertion concrete and local to this config.
 const startOllama = ensureOllamaServer as OllamaStarter;
 const resolveCommand = commandPath as CommandResolver;
+const validateCertificates = validateDevCertificates as (
+  certPath: string,
+  keyPath: string,
+  now?: Date,
+) => CertificateValidation;
 
 // ============================================================================
 // Plugins
@@ -295,9 +302,12 @@ function parseDevServerPort(raw: string | undefined): number {
 const keyPath = path.resolve(__dirname, "key.pem");
 const certPath = path.resolve(__dirname, "cert.pem");
 
-const hasHttpsCerts = fs.existsSync(keyPath) && fs.existsSync(certPath);
-
 const devProxy = resolveDevProxy();
+const certificateValidation = validateCertificates(certPath, keyPath);
+if (!devProxy && !certificateValidation.valid) {
+  throw new Error(`EV HTTPS startup blocked: ${certificateValidation.reason}`);
+}
+const hasHttpsCerts = certificateValidation.valid;
 
 export default defineConfig({
   plugins: [

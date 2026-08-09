@@ -2,6 +2,31 @@ import type { BrowserProviderRegistration } from "./browser-model-runtime.js";
 
 const DIRECT_OLLAMA_BASE_URL = "http://127.0.0.1:11434";
 
+function isOllamaPayload(value: DynamicValue): value is DynamicObject {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+/**
+ * Disable Qwen's private reasoning channel while preserving the normal request
+ * messages and tool definitions. Ollama otherwise returns reasoning text in a
+ * separate OpenAI-compatible `reasoning` field, which the shared adapter exposes
+ * as an assistant thinking block.
+ */
+export function disableOllamaThinking(payload: DynamicValue): DynamicValue {
+  if (!isOllamaPayload(payload)) return payload;
+  const existingKwargs = isOllamaPayload(payload.chat_template_kwargs)
+    ? payload.chat_template_kwargs
+    : {};
+  return {
+    ...payload,
+    reasoning_effort: "none",
+    chat_template_kwargs: {
+      ...existingKwargs,
+      enable_thinking: false,
+    },
+  };
+}
+
 export interface OllamaTransportOptions {
   /** Use the same-origin HTTPS relay used by the local Excel WebView. */
   useRelay?: boolean;

@@ -14,13 +14,25 @@ import {
   REQUIRED_LOCAL_MODEL,
   requestOllamaModel,
 } from "./ev-environment.mjs";
+import { validateDevCertificates } from "./certificates.mjs";
 
 const repoRoot = path.resolve(new URL("..", import.meta.url).pathname);
 const summary = environmentSummary(repoRoot);
 console.log("EV SETUP");
 
-if (process.platform !== "darwin") {
-  console.log(`! macOS-specific Ollama startup is unavailable on ${process.platform}.`);
+const certificateValidation = validateDevCertificates(
+  path.join(repoRoot, "cert.pem"),
+  path.join(repoRoot, "key.pem"),
+);
+if (certificateValidation.valid) {
+  console.log("✓ HTTPS development certificate");
+} else {
+  console.warn(`! HTTPS development certificate: ${certificateValidation.reason}`);
+  console.warn("  Generate a trusted local pair with mkcert (or another trusted local certificate tool), then retry npm run setup.");
+}
+
+if (process.platform !== "darwin" && process.platform !== "win32") {
+  console.log(`! Ollama guidance is unavailable on ${process.platform}; EV can still use remote providers.`);
 }
 
 if (!isSupportedNodeVersion(process.version)) {
@@ -47,14 +59,16 @@ if (hasDependencies(repoRoot)) console.log("✓ dependencies installed");
 
 const ollama = commandPath("ollama");
 if (!ollama) {
-  console.error("\n✗ Ollama is not installed. Install it from https://ollama.com/download/mac and run npm run setup again.");
-  process.exitCode = 1;
+  const installUrl = process.platform === "win32"
+    ? "https://ollama.com/download/windows"
+    : "https://ollama.com/download";
+  console.warn(`\n! Ollama is not installed. EV remains usable with remote providers.`);
+  console.warn(`  Optional local setup: install Ollama from ${installUrl}, then run npm run setup again.`);
 } else {
   console.log(`✓ Ollama detected (${ollama})`);
   const server = await ensureOllamaServer({ executable: ollama });
   if (!server.reachable) {
-    console.error("✗ Ollama is installed but not running. Start Ollama and run setup again.");
-    process.exitCode = 1;
+    console.warn("! Ollama is installed but not running. Start Ollama and EV will detect it on refresh.");
   } else {
     console.log(`✓ Ollama server running${server.started ? " (started by setup)" : ""}`);
     const request = server.models.includes(REQUIRED_LOCAL_MODEL)
@@ -68,14 +82,11 @@ if (!ollama) {
       requestOk: request.ok,
     });
     if (state === "OLLAMA_NO_MODELS") {
-      console.error("✗ Ollama has no models. Run: ollama pull qwen3:4b");
-      process.exitCode = 1;
+      console.warn("! Ollama has no models. Add one explicitly, for example: ollama pull qwen3:4b");
     } else if (!server.models.includes(REQUIRED_LOCAL_MODEL)) {
-      console.error("✗ qwen3:4b is not installed. Run: ollama pull qwen3:4b");
-      process.exitCode = 1;
+      console.warn(`! ${REQUIRED_LOCAL_MODEL} is not installed. Add it explicitly with: ollama pull ${REQUIRED_LOCAL_MODEL}`);
     } else if (!request.ok) {
-      console.error(`✗ qwen3:4b did not respond: ${request.error}`);
-      process.exitCode = 1;
+      console.warn(`! ${REQUIRED_LOCAL_MODEL} did not respond: ${request.error}`);
     } else {
       console.log("✓ qwen3:4b detected");
       console.log("✓ EV local provider reachable directly through Ollama (no proxy)");

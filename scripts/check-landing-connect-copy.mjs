@@ -15,7 +15,7 @@ const LANDING_REQUIRED_SNIPPETS = [
 const LANDING_FORBIDDEN_SNIPPETS = [
   "git clone https://github.com/tmustier/nyx.git ~/.ev-excel",
   "mkcert -install && mkcert localhost",
-  "cd ~/.pi-for-excel && npm run proxy:https",
+  "cd ~/.ev-excel && npm run proxy:https",
 ];
 
 const INSTALL_DOC_REQUIRED_SNIPPETS = [

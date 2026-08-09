@@ -145,7 +145,10 @@ void test("custom gateway discovery merges remote model ids and persists the cat
 
 void test("Ollama discovers local models directly without using the configured proxy", async () => {
   let requestedUrl = "";
+  const providerKeys = new MemoryProviderKeys();
+  await providerKeys.set("openai", "test-key");
   const runtime = createRuntime({
+    providerKeys,
     fetchFn: (input) => {
       requestedUrl = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
       return Promise.resolve(new Response(JSON.stringify({
@@ -161,6 +164,7 @@ void test("Ollama discovers local models directly without using the configured p
   assert.equal(requestedUrl, "http://127.0.0.1:11434/api/tags");
   assert.equal(runtime.shouldProxyProvider("ollama"), false);
   assert.equal((await runtime.models.getAuth("ollama"))?.auth.apiKey, "local-provider");
+  assert.ok((await runtime.models.getAvailable("openai")).some((model) => model.id === "gpt-5.6-sol"));
   assert.deepEqual(
     runtime.models.getModels("ollama").map((model) => model.id),
     ["llama3.2", "qwen3:8b"],

@@ -36,3 +36,5 @@ manifest.dev.xml
 
 # Session exports
 pi-session-*
+cert.pem
+key.pem

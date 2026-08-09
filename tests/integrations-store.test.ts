@@ -70,7 +70,7 @@ void test("setIntegrationEnabledInScope toggles session/workbook flags", async (
   );
   assert.deepEqual(
     await getWorkbookIntegrationIds(settings, "workbook-2", KNOWN_INTEGRATIONS),
-    ["web_search", "mcp_tools"],
+    ["mcp_tools"],
   );
 
   await setIntegrationEnabledInScope({
@@ -113,7 +113,7 @@ void test("session scope can opt into defaults when unconfigured", async () => {
   const ids = await getSessionIntegrationIds(settings, "new-session", KNOWN_INTEGRATIONS, {
     applyDefaultsWhenUnconfigured: true,
   });
-  assert.deepEqual(ids, ["web_search"]);
+  assert.deepEqual(ids, []);
 });
 
 void test("explicitly cleared session scope returns empty", async () => {
@@ -146,11 +146,11 @@ void test("explicitly cleared session scope returns empty", async () => {
   assert.deepEqual(fallbackIds, []);
 });
 
-void test("unconfigured workbook scope returns default-enabled integrations", async () => {
+void test("unconfigured workbook scope returns no optional integrations", async () => {
   const settings = new MemorySettingsStore();
 
   const ids = await getWorkbookIntegrationIds(settings, "new-workbook", KNOWN_INTEGRATIONS);
-  assert.deepEqual(ids, ["web_search"]);
+  assert.deepEqual(ids, []);
 });
 
 void test("resolveConfiguredIntegrationIds includes defaults for fresh session+workbook", async () => {
@@ -163,7 +163,7 @@ void test("resolveConfiguredIntegrationIds includes defaults for fresh session+w
     knownIntegrationIds: KNOWN_INTEGRATIONS,
   });
 
-  assert.deepEqual(ids, ["web_search"]);
+  assert.deepEqual(ids, []);
 });
 
 void test("resolveConfiguredIntegrationIds includes defaults when workbook identity is unavailable", async () => {
@@ -176,7 +176,7 @@ void test("resolveConfiguredIntegrationIds includes defaults when workbook ident
     knownIntegrationIds: KNOWN_INTEGRATIONS,
   });
 
-  assert.deepEqual(ids, ["web_search"]);
+  assert.deepEqual(ids, []);
 });
 
 void test("workbook-level disable persists across new sessions", async () => {

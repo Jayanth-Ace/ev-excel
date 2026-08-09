@@ -38,9 +38,13 @@ export function isSupportedLanguage(lang: string): lang is SupportedLanguage {
 }
 
 export function initLanguage(lang: string): void {
-  if (isSupportedLanguage(lang)) {
+  if (lang === "en") {
     currentLang = lang;
+    return;
   }
+  // Legacy locale values remain parseable for persisted-data compatibility,
+  // but the public product is intentionally English-only.
+  currentLang = "en";
 }
 
 export function t(key: string, vars?: Record<string, string | number>): string {

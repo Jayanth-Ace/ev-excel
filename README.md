@@ -99,9 +99,17 @@ npm run dev        # Vite dev server on https://localhost:3141
 npm run sideload   # Start Vite and the Excel debugging session
 ```
 
-`npm run setup` never downloads a model. If `qwen3:4b` is missing, install it
-explicitly with `ollama pull qwen3:4b`. Setup can start an installed Ollama
-server when it is stopped, but it does not install Ollama or download models.
+`npm run setup` never installs Ollama or downloads a model. Ollama is optional:
+on macOS install it from [ollama.com/download](https://ollama.com/download), and
+on Windows use [ollama.com/download/windows](https://ollama.com/download/windows).
+Then install a model explicitly, for example `ollama pull qwen3:4b`. EV reports
+an installed-but-stopped server and a server with no models without failing the
+rest of setup.
+
+If the HTTPS preflight reports a missing or invalid certificate, install
+[mkcert](https://github.com/FiloSottile/mkcert), run `mkcert -install`, then
+`mkcert localhost` and rename the generated files to `key.pem` and `cert.pem`.
+These development certificates are ignored by Git.
 
 > **Note:** the dev port is `3141` — deliberately off the crowded `:3000`.
 > If you sideloaded a manifest before the move from `:3000`, re-copy
@@ -137,6 +145,8 @@ The dev manifest points to `https://localhost:3141`. The production manifest (`m
 | Command | Description |
 |---|---|
 | `npm run dev` | Start Vite dev server (port 3141, HTTPS) |
+| `npm run dev:excel` | Start Vite and the Excel debugging session |
+| `npm run stop` | Stop EV's desktop Office debugging session |
 | `npm run setup` | Validate Node, dependencies, Ollama, and the required local model |
 | `npm run doctor` | Print runtime, provider, port, manifest, and Excel diagnostics |
 | `npm run sideload` | Start Vite and the supported Excel debugging session |

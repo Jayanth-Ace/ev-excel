@@ -26,7 +26,11 @@ if (!result.ok) {
   console.error(`✗ Model request failed: ${result.error}`);
   process.exit(1);
 }
-console.log(`✓ /v1/chat/completions responded${result.responseKind === "reasoning" ? " with a reasoning-only response" : ""}: ${result.content}`);
+if (result.responseKind !== "content" || result.content.length === 0 || /<think>|internal instructions|function protocol/iu.test(result.content)) {
+  console.error("✗ Ollama response still contains private reasoning or protocol text.");
+  process.exit(1);
+}
+console.log(`✓ /v1/chat/completions responded with ordinary answer text: ${result.content}`);
 
 if (checkPort(3141)) {
   const tags = spawnSync("curl", ["-ksSf", "https://localhost:3141/ollama-proxy/api/tags"], { encoding: "utf8" });

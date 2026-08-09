@@ -6,7 +6,7 @@
  * - workbook: applies to all sessions for the active workbook
  *
  * Workbook scope that has never been configured (null in storage) inherits
- * catalog defaults (e.g. web_search is enabled by default). Session scope
+ * catalog defaults (optional integrations are disabled by default). Session scope
  * stays explicit by default, with an opt-in runtime fallback when workbook
  * identity is unavailable.
  */
@@ -95,7 +95,7 @@ async function getScopeIntegrationIds(
     : workbookIntegrationsKey(identifier);
   const raw = await settings.get(key);
 
-  // Never configured workbook scope inherits defaults (web search).
+  // Never configured workbook scope inherits the catalog defaults.
   // Session scope stays explicit unless the caller opts into fallback defaults.
   if (raw == null) {
     if (scope === "workbook" || applyDefaultsWhenUnconfigured) {

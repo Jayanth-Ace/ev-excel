@@ -9,8 +9,11 @@
  */
 
 import { uuidv7 } from "@earendil-works/pi-agent-core";
+import { createAssistantMessageEventStream } from "@earendil-works/pi-ai";
 import type {
   Api,
+  AssistantMessage,
+  AssistantMessageEvent,
   AssistantMessageEventStream,
   Context,
   Model,
@@ -21,6 +24,7 @@ import type {
 import { isDebugEnabled } from "../debug/debug.js";
 import { selectToolBundle, type ToolBundleId } from "../context/tool-disclosure.js";
 import { modelRecencyScore } from "../models/model-ordering.js";
+import { disableOllamaThinking } from "../models/local-providers.js";
 import { OPENAI_GATEWAY_PROVIDER_PREFIX } from "./custom-gateways.js";
 import {
   createPrefixFingerprint,
@@ -499,6 +503,102 @@ function withPayloadHook(
   return { onPayload };
 }
 
+function withOllamaPayloadPolicy(options: StreamOptions | undefined): StreamOptions {
+  const originalOnPayload = options?.onPayload;
+  return {
+    ...options,
+    onPayload: async (payload, model) => {
+      const normalizedPayload = disableOllamaThinking(payload);
+      const transformedPayload = await originalOnPayload?.(normalizedPayload, model);
+      return transformedPayload ?? normalizedPayload;
+    },
+  };
+}
+
+/** Remove Ollama/Qwen reasoning protocol blocks before they reach the EV UI. */
+export function stripOllamaThinkingText(text: string): string {
+  return text
+    .replace(/<think>[\s\S]*?(?:<\/think>|$)/giu, "")
+    .replace(/^[\s\S]*?<\/think>/iu, "");
+}
+
+function sanitizeOllamaMessage(message: AssistantMessage): AssistantMessage {
+  const content: AssistantMessage["content"] = [];
+  for (const block of message.content) {
+    if (block.type === "thinking") continue;
+    if (block.type === "text") {
+      content.push({
+        ...block,
+        text: stripOllamaThinkingText(block.text),
+      });
+      continue;
+    }
+    content.push(block);
+  }
+  return {
+    ...message,
+    content,
+  };
+}
+
+function createOllamaTextFilter(): (delta: string) => string {
+  let source = "";
+  let emitted = 0;
+  return (delta) => {
+    source += delta;
+    const visible = stripOllamaThinkingText(source);
+    const next = visible.slice(emitted);
+    emitted = visible.length;
+    return next;
+  };
+}
+
+function sanitizeOllamaEvent(
+  event: AssistantMessageEvent,
+  filterTextDelta: (delta: string) => string,
+): AssistantMessageEvent | null {
+  if (event.type === "thinking_start" || event.type === "thinking_delta" || event.type === "thinking_end") {
+    return null;
+  }
+  if (event.type === "done") {
+    return { ...event, message: sanitizeOllamaMessage(event.message) };
+  }
+  if (event.type === "error") {
+    return { ...event, error: sanitizeOllamaMessage(event.error) };
+  }
+  if (event.type === "text_end") {
+    return {
+      ...event,
+      content: stripOllamaThinkingText(event.content),
+      partial: sanitizeOllamaMessage(event.partial),
+    };
+  }
+  if (event.type === "text_delta") {
+    const delta = filterTextDelta(event.delta);
+    if (delta.length === 0) return null;
+    return { ...event, delta, partial: sanitizeOllamaMessage(event.partial) };
+  }
+  return { ...event, partial: sanitizeOllamaMessage(event.partial) };
+}
+
+/**
+ * Keep the pi-ai stream contract while filtering only Ollama's private
+ * reasoning channel. The underlying provider remains responsible for all
+ * text, tool-call, cancellation, and error events.
+ */
+function hideOllamaReasoning(stream: AssistantMessageEventStream): AssistantMessageEventStream {
+  const filtered = createAssistantMessageEventStream();
+  const filterTextDelta = createOllamaTextFilter();
+  void (async () => {
+    for await (const event of stream) {
+      const sanitized = sanitizeOllamaEvent(event, filterTextDelta);
+      if (sanitized) filtered.push(sanitized);
+    }
+    filtered.end(sanitizeOllamaMessage(await stream.result()));
+  })();
+  return filtered;
+}
+
 /**
  * Create a StreamFn compatible with Agent that proxies provider base URLs when needed.
  */
@@ -589,7 +689,10 @@ export function createOfficeStreamFn(
       continuation,
       toolSelection.bundleId,
     );
-    const effectiveOptions = withPayloadHook(options, callRecord.call, callRecord.captureSnapshot);
+    const capturedOptions = withPayloadHook(options, callRecord.call, callRecord.captureSnapshot);
+    const effectiveOptions = normalizedModel.provider === "ollama"
+      ? withOllamaPayloadPolicy(capturedOptions)
+      : capturedOptions;
 
     const proxyUrl = await getProxyUrl();
     const needsCodexBridge = requiresCodexWebSocketBridge(normalizedModel);
@@ -600,11 +703,13 @@ export function createOfficeStreamFn(
           "Enable Proxy in Settings and run: npm run proxy:https",
         );
       }
-      return modelsRuntime.streamSimple(normalizedModel, effectiveContext, effectiveOptions);
+      const stream = modelsRuntime.streamSimple(normalizedModel, effectiveContext, effectiveOptions);
+      return normalizedModel.provider === "ollama" ? hideOllamaReasoning(stream) : stream;
     }
 
     if (!shouldProxyProvider(normalizedModel.provider, options?.apiKey, isRuntimeProvider)) {
-      return modelsRuntime.streamSimple(normalizedModel, effectiveContext, effectiveOptions);
+      const stream = modelsRuntime.streamSimple(normalizedModel, effectiveContext, effectiveOptions);
+      return normalizedModel.provider === "ollama" ? hideOllamaReasoning(stream) : stream;
     }
 
     // Guardrails: fail fast for known-bad proxy configs (e.g., HTTP proxy from HTTPS taskpane).

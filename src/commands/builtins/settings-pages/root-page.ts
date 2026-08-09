@@ -225,7 +225,7 @@ function buildBehaviorGroup(ctx: SettingsPageContext): HTMLElement {
 
   // ── Language ──
   const languageRow = createSettingSelectRow({
-    label: t("settings.section.language.label"),
+    label: `${t("settings.section.language.label")} · ${t("language.english")}`,
     options: [
       { value: "en", label: t("settings.section.language.en") },
     ],

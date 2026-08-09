@@ -108,8 +108,9 @@ export async function requestOllamaModel(model, { fetchFn = globalThis.fetch, ti
         body: JSON.stringify({
           model,
           messages: [{ role: "user", content: "Reply with OK." }],
-          max_tokens: 16,
+          max_tokens: 512,
           stream: false,
+          reasoning_effort: "none",
         }),
       },
       fetchFn,
@@ -123,13 +124,16 @@ export async function requestOllamaModel(model, { fetchFn = globalThis.fetch, ti
     const first = choices[0];
     const message = first !== null && typeof first === "object" ? first.message : undefined;
     const content = message !== null && typeof message === "object" && typeof message.content === "string"
-      ? message.content.trim()
+      ? message.content
+        .replace(/<think>[\s\S]*?(?:<\/think>|$)/giu, "")
+        .replace(/^[\s\S]*?<\/think>/iu, "")
+        .trim()
       : "";
     const reasoning = message !== null && typeof message === "object" && typeof message.reasoning === "string"
       ? message.reasoning.trim()
       : "";
     if (content.length > 0) return { ok: true, content, responseKind: "content" };
-    if (reasoning.length > 0) return { ok: true, content: reasoning, responseKind: "reasoning" };
+    if (reasoning.length > 0) return { ok: false, error: "Ollama returned reasoning without an ordinary answer." };
     return { ok: false, error: "Ollama returned no response text." };
   } catch (error) {
     return { ok: false, error: error instanceof Error ? error.message : String(error) };

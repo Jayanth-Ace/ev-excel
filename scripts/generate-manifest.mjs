@@ -5,7 +5,7 @@
  *
  * Usage:
  *   ADDIN_BASE_URL="https://ev-excel.vercel.app" node scripts/generate-manifest.mjs
- *   ADDIN_BASE_URL="https://pi-for-excel.example.com" OUT=manifest.prod.xml node scripts/generate-manifest.mjs
+ *   ADDIN_BASE_URL="https://ev-excel.example.com" OUT=manifest.prod.xml node scripts/generate-manifest.mjs
  *
  * Replaces all occurrences of the dev base URL (https://localhost:3141) with ADDIN_BASE_URL.
  *
@@ -20,7 +20,7 @@ import path from "node:path";
 const DEV_BASE_URL = "https://localhost:3141";
 
 function fail(msg) {
-  console.error(`[pi-for-excel] ${msg}`);
+  console.error(`[ev-excel] ${msg}`);
   process.exit(1);
 }
 
@@ -63,7 +63,7 @@ if (!xml.includes(DEV_BASE_URL)) {
 const replaced = xml.split(DEV_BASE_URL).join(baseUrl);
 
 fs.writeFileSync(outPath, replaced);
-console.log(`[pi-for-excel] Wrote ${outPath}`);
+console.log(`[ev-excel] Wrote ${outPath}`);
 
 // Also publish to public/ so the hosted site can offer a one-click download.
 fs.mkdirSync(path.dirname(publicOutPath), { recursive: true });

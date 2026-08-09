@@ -13,9 +13,14 @@ import {
   REQUIRED_LOCAL_MODEL,
   requestOllamaModel,
 } from "./ev-environment.mjs";
+import { validateDevCertificates } from "./certificates.mjs";
 
 const repoRoot = path.resolve(new URL("..", import.meta.url).pathname);
 console.log("EV DOCTOR");
+const certificateValidation = validateDevCertificates(
+  path.join(repoRoot, "cert.pem"),
+  path.join(repoRoot, "key.pem"),
+);
 const summary = environmentSummary(repoRoot);
 const npmCheck = spawnSync("npm", ["--version"], { encoding: "utf8" });
 const rows = [
@@ -24,6 +29,7 @@ const rows = [
   { label: `npm ${npmCheck.status === 0 ? npmCheck.stdout.trim() : "unavailable"}`, ok: npmCheck.status === 0 },
   { label: "dependencies", ok: hasDependencies(repoRoot) },
   { label: "manifest.xml", ok: fs.existsSync(path.join(repoRoot, "manifest.xml")) },
+  { label: "HTTPS development certificate", ok: certificateValidation.valid, warn: !certificateValidation.valid, detail: certificateValidation.reason },
   { label: "Microsoft Excel", ok: excelInstalled(), warn: !excelInstalled(), detail: excelInstalled() ? undefined : "manual Excel validation unavailable" },
 ];
 
@@ -31,11 +37,11 @@ const ollama = commandPath("ollama");
 rows.push({ label: "Ollama installed", ok: ollama !== undefined, detail: ollama });
 if (ollama) {
   const server = await ensureOllamaServer({ executable: ollama });
-  rows.push({ label: "Ollama server", ok: server.reachable, detail: server.reachable ? "127.0.0.1:11434" : "start Ollama and retry" });
-  rows.push({ label: `${REQUIRED_LOCAL_MODEL} available`, ok: server.models.includes(REQUIRED_LOCAL_MODEL), detail: server.models.length > 0 ? server.models.join(", ") : "ollama pull qwen3:4b" });
+  rows.push({ label: "Ollama server", ok: server.reachable, warn: !server.reachable, detail: server.reachable ? "127.0.0.1:11434" : "optional: start Ollama to use local models" });
+  rows.push({ label: `${REQUIRED_LOCAL_MODEL} available`, ok: server.models.includes(REQUIRED_LOCAL_MODEL), warn: !server.models.includes(REQUIRED_LOCAL_MODEL), detail: server.models.length > 0 ? server.models.join(", ") : `optional: ollama pull ${REQUIRED_LOCAL_MODEL}` });
   if (server.models.includes(REQUIRED_LOCAL_MODEL)) {
     const request = await requestOllamaModel(REQUIRED_LOCAL_MODEL);
-    rows.push({ label: "EV local provider", ok: request.ok, detail: request.ok ? "direct Ollama request" : request.error });
+    rows.push({ label: "EV local provider", ok: request.ok, warn: !request.ok, detail: request.ok ? "direct Ollama request" : request.error });
   }
 } else {
   rows.push({ label: "Ollama server", ok: false, warn: true, detail: "not installed; not required for remote providers" });

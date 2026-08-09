@@ -224,6 +224,7 @@ import {
   type NyxContextSnapshot,
   type NyxObjective,
   type NyxPersistedState,
+  type NyxPlanningResult,
 } from "../nyx/domain.js";
 import { createNyxPlanner } from "../nyx/planner.js";
 import { EMPTY_NYX_UI_STATE, type NyxUiState } from "../nyx/ui-state.js";
@@ -1011,7 +1012,20 @@ export async function initTaskpane(opts: {
     );
     // Runtime tools are already normalized by the existing composition path;
     // the name filter above is the safety invariant for this boundary.
-    const result = await planner.generate(objective, context, planningTools as AgentTool[]);
+    let result: NyxPlanningResult;
+    try {
+      result = await awaitWithTimeout(
+        "Nyx planning",
+        90_000,
+        planner.generate(objective, context, planningTools as AgentTool[]),
+      );
+    } catch (error) {
+      updateActiveNyxState({
+        status: "error",
+        message: error instanceof Error ? error.message : t("nyx.plan.unavailable"),
+      });
+      return;
+    }
     if (result.kind === "plan") {
       updateActiveNyxState({ status: "planned", plan: result.plan });
       return;
