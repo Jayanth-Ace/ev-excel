@@ -19,6 +19,9 @@ export function validateDevCertificates(certPath, keyPath, now = new Date()) {
     if (now < new Date(certificate.validFrom) || now > new Date(certificate.validTo)) {
       return { valid: false, reason: `The development certificate is not valid on ${now.toISOString()}. Generate a new pair with: mkcert localhost` };
     }
+    if (!certificate.checkHost("localhost")) {
+      return { valid: false, reason: "The development certificate does not include localhost in its subject alternative names. Generate a new pair with: mkcert localhost" };
+    }
     return { valid: true, reason: "valid" };
   } catch (error) {
     return {
