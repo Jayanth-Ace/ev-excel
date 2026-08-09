@@ -8,14 +8,14 @@
 import { t } from "../language/index.js";
 import { AlertTriangle, Check, Copy, lucide } from "./lucide-icons.js";
 
-const PROXY_COMMAND = "npx pi-for-excel-proxy";
+const PROXY_COMMAND = "npm run proxy:https";
 const INSTALL_GUIDE_URL = "https://pi.dev/excel#connect";
 
 export type ProxyBannerState = "detected" | "not-detected" | "unknown";
 
 export interface ProxyBannerHandle {
   root: HTMLElement;
-  update: (state: ProxyBannerState) => void;
+  update: (state: ProxyBannerState, requiresProxy?: boolean) => void;
 }
 
 function selectElementText(element: HTMLElement): void {
@@ -138,8 +138,8 @@ export function createProxyBanner(): ProxyBannerHandle {
 
   root.append(topRow, details);
 
-  const update = (state: ProxyBannerState): void => {
-    const shouldShow = state === "not-detected";
+  const update = (state: ProxyBannerState, requiresProxy = true): void => {
+    const shouldShow = requiresProxy && state === "not-detected";
     root.hidden = !shouldShow;
 
     if (!shouldShow) {

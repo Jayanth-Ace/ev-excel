@@ -10,6 +10,12 @@ import { PI_EXECUTION_MODE_CHANGED_EVENT, type ExecutionMode } from "../../../ex
 import type { ModelSwitchBehavior } from "../../../models/switch-behavior.js";
 import { getLanguage, initLanguage, t } from "../../../language/index.js";
 import {
+  getAppearanceSettings,
+  saveAppearanceSettings,
+  type AccentName,
+  type AppearanceMode,
+} from "../../../ui/appearance.js";
+import {
   Archive,
   FlaskConical,
   Keyboard,
@@ -186,13 +192,42 @@ function buildBehaviorGroup(ctx: SettingsPageContext): HTMLElement {
     });
   }
 
+  const appearance = getAppearanceSettings();
+  const modeRow = createSettingSelectRow({
+    label: t("settings.section.appearance.mode"),
+    sublabel: t("settings.section.appearance.mode_sublabel"),
+    options: [
+      { value: "dark", label: t("settings.section.appearance.dark") },
+      { value: "light", label: t("settings.section.appearance.light") },
+      { value: "system", label: t("settings.section.appearance.system") },
+    ],
+    value: appearance.mode,
+    onChange: (value) => {
+      if (!isAppearanceMode(value)) return;
+      void saveAppearanceSetting({ mode: value, accent: getAppearanceSettings().accent });
+    },
+  });
+  const accentRow = createSettingSelectRow({
+    label: t("settings.section.appearance.accent"),
+    options: [
+      { value: "orange", label: t("settings.section.appearance.orange") },
+      { value: "blue", label: t("settings.section.appearance.blue") },
+      { value: "purple", label: t("settings.section.appearance.purple") },
+      { value: "green", label: t("settings.section.appearance.green") },
+      { value: "red", label: t("settings.section.appearance.red") },
+    ],
+    value: appearance.accent,
+    onChange: (value) => {
+      if (!isAccent(value)) return;
+      void saveAppearanceSetting({ mode: getAppearanceSettings().mode, accent: value });
+    },
+  });
+
   // ── Language ──
   const languageRow = createSettingSelectRow({
     label: t("settings.section.language.label"),
     options: [
       { value: "en", label: t("settings.section.language.en") },
-      // Disclose that the Chinese translation is AI-generated (issue #608).
-      { value: "zh-CN", label: t("settings.section.language.zh") },
     ],
     value: getLanguage(),
     onChange: (newLang) => {
@@ -210,8 +245,24 @@ function buildBehaviorGroup(ctx: SettingsPageContext): HTMLElement {
     },
   });
 
-  group.list.append(autoApply.root, forkToggle.root, languageRow.root);
+  group.list.append(autoApply.root, forkToggle.root, modeRow.root, accentRow.root, languageRow.root);
   return group.root;
+}
+
+function isAppearanceMode(value: string): value is AppearanceMode {
+  return value === "dark" || value === "light" || value === "system";
+}
+
+function isAccent(value: string): value is AccentName {
+  return value === "orange" || value === "blue" || value === "purple" || value === "green" || value === "red";
+}
+
+async function saveAppearanceSetting(next: { mode: AppearanceMode; accent: AccentName }): Promise<void> {
+  try {
+    await saveAppearanceSettings(getAppStorage().settings, next);
+  } catch {
+    showToast(t("settings.section.appearance.save_failed"));
+  }
 }
 
 function buildRulesDataGroup(ctx: SettingsPageContext): HTMLElement {

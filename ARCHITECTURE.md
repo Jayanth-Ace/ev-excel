@@ -110,3 +110,18 @@ The orchestrator should own task state and approved step sequencing. The existin
 - Keep user approval explicit for consequential work.
 - Preserve current Pi sessions and tools while new Nyx workflows mature.
 - Prefer additive interfaces and adapters over renaming stable runtime modules.
+## Local AI provider boundary
+
+Ollama is registered through the same browser model runtime used by other
+providers; it does not have a second provider architecture. Its catalogue is
+read from `http://127.0.0.1:11434/api/tags` and its OpenAI-compatible inference
+transport uses `http://127.0.0.1:11434/v1`. The registration is keyless and
+direct, so the EV remote proxy is never involved in local inference. Provider
+availability is represented explicitly (unknown, available, empty, or
+unavailable) and the taskpane can fall back without restoring stale local
+models.
+
+The developer environment scripts in `scripts/ev-environment.mjs` use the same
+endpoints for setup, diagnostics, and real integration checks. They may start
+an installed Ollama server on macOS, but never download a model without an
+explicit `ollama pull` command.

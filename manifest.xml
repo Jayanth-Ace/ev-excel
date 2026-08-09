@@ -14,7 +14,7 @@
   <Description DefaultValue="A polished, multi-model AI assistant for Microsoft Excel." />
   <IconUrl DefaultValue="https://localhost:3141/assets/icon-32.png" />
   <HighResolutionIconUrl DefaultValue="https://localhost:3141/assets/icon-80.png" />
-  <SupportUrl DefaultValue="https://github.com/tmustier/pi-for-excel/issues/new/choose" />
+  <SupportUrl DefaultValue="https://github.com/tmustier/nyx/issues/new/choose" />
 
   <Hosts>
     <Host Name="Workbook" />

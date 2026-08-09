@@ -11,6 +11,7 @@ import {
   BrowserModelRuntime,
   type BrowserProviderRegistration,
 } from "../src/models/browser-model-runtime.ts";
+import { ollamaProvider, resolveOllamaTransport } from "../src/models/local-providers.ts";
 import type { CustomProvider } from "../src/storage/local/custom-providers-store.ts";
 import {
   ProviderCredentialsStore,
@@ -140,6 +141,60 @@ void test("custom gateway discovery merges remote model ids and persists the cat
     catalogs.entries.get("Gateway · Acme")?.models.map((model) => model.id),
     ["remote-a", "remote-b"],
   );
+});
+
+void test("Ollama discovers local models directly without using the configured proxy", async () => {
+  let requestedUrl = "";
+  const runtime = createRuntime({
+    fetchFn: (input) => {
+      requestedUrl = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      return Promise.resolve(new Response(JSON.stringify({
+        models: [{ name: "qwen3:8b" }, { name: "llama3.2" }, { name: "qwen3:8b" }],
+      }), { status: 200, headers: { "Content-Type": "application/json" } }));
+    },
+  });
+
+  runtime.registerLocalProvider(ollamaProvider);
+  const result = await runtime.refresh({ allowNetwork: true, force: true });
+
+  assert.equal(result.errors.size, 0);
+  assert.equal(requestedUrl, "http://127.0.0.1:11434/api/tags");
+  assert.equal(runtime.shouldProxyProvider("ollama"), false);
+  assert.equal((await runtime.models.getAuth("ollama"))?.auth.apiKey, "local-provider");
+  assert.deepEqual(
+    runtime.models.getModels("ollama").map((model) => model.id),
+    ["llama3.2", "qwen3:8b"],
+  );
+});
+
+void test("secure local browser transport uses the same-origin Ollama relay", () => {
+  assert.deepEqual(resolveOllamaTransport({ useRelay: false }), {
+    baseUrl: "http://127.0.0.1:11434/v1",
+    modelsUrl: "http://127.0.0.1:11434/api/tags",
+    usesRelay: false,
+  });
+  assert.deepEqual(resolveOllamaTransport({ useRelay: true, relayOrigin: "https://localhost:3141" }), {
+    baseUrl: "https://localhost:3141/ollama-proxy/v1",
+    modelsUrl: "https://localhost:3141/ollama-proxy/api/tags",
+    usesRelay: true,
+  });
+});
+
+void test("Ollama reports unavailable and empty local states without exposing stale models", async () => {
+  let response: Response = new Response("offline", { status: 503 });
+  const runtime = createRuntime({ fetchFn: () => Promise.resolve(response) });
+  runtime.registerLocalProvider(ollamaProvider);
+
+  await runtime.refresh({ allowNetwork: true, force: true });
+  assert.equal(runtime.getLocalProviderStatus("ollama"), "unavailable");
+  assert.deepEqual(runtime.models.getModels("ollama"), []);
+
+  response = new Response(JSON.stringify({ models: [] }), {
+    status: 200,
+    headers: { "Content-Type": "application/json" },
+  });
+  await runtime.refresh({ allowNetwork: true, force: true });
+  assert.equal(runtime.getLocalProviderStatus("ollama"), "empty");
 });
 
 void test("a fresh runtime restores discovered models without network access", async () => {

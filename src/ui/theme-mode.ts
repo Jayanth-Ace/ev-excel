@@ -14,21 +14,15 @@ import {
   type ExperimentalFeatureChangedDetail,
 } from "../experiments/events.js";
 import {
-  isExperimentalFeatureEnabled,
-  type ExperimentalFeatureId,
-} from "../experiments/flags.js";
-import {
   createSpreadsheetHost,
   detectSpreadsheetHost,
   getCurrentSpreadsheetHost,
   type SpreadsheetHost,
 } from "../host/index.js";
-
-const DARK_MODE_EXPERIMENT_ID: ExperimentalFeatureId = "ui_dark_mode";
-
-function isDarkModeExperimentEnabled(): boolean {
-  return isExperimentalFeatureEnabled(DARK_MODE_EXPERIMENT_ID);
-}
+import {
+  APPEARANCE_CHANGED_EVENT,
+  getAppearanceSettings,
+} from "./appearance.js";
 
 function resolveHostThemeDark(): boolean | null {
   const currentHost = getCurrentSpreadsheetHost();
@@ -47,10 +41,9 @@ function resolveHostThemeDark(): boolean | null {
 }
 
 function resolvePreferredDark(mediaMatches: boolean): boolean {
-  if (!isDarkModeExperimentEnabled()) {
-    return false;
-  }
-
+  const mode = getAppearanceSettings().mode;
+  if (mode === "light") return false;
+  if (mode === "dark") return true;
   const hostDark = resolveHostThemeDark();
   if (hostDark !== null) {
     return hostDark;
@@ -154,17 +147,16 @@ export function installThemeModeSync(): () => void {
       return;
     }
 
-    if (event.detail.featureId !== DARK_MODE_EXPERIMENT_ID) {
-      return;
-    }
-
     apply();
   };
+
+  const onAppearanceChange = (): void => apply();
 
   document.addEventListener(
     PI_EXPERIMENTAL_FEATURE_CHANGED_EVENT,
     onExperimentalFeatureChange,
   );
+  document.addEventListener(APPEARANCE_CHANGED_EVENT, onAppearanceChange);
 
   const cleanup = (): void => {
     disposed = true;
@@ -172,6 +164,7 @@ export function installThemeModeSync(): () => void {
       PI_EXPERIMENTAL_FEATURE_CHANGED_EVENT,
       onExperimentalFeatureChange,
     );
+    document.removeEventListener(APPEARANCE_CHANGED_EVENT, onAppearanceChange);
     officeReadyDispose?.();
     if (officeRetryTimer !== null) {
       clearInterval(officeRetryTimer);

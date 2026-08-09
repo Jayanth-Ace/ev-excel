@@ -62,6 +62,12 @@ export interface BrowserProviderRegistration {
   models: readonly BrowserProviderModelDefinition[];
   /** Defaults to `${baseUrl}/models` for OpenAI-compatible providers. */
   modelsUrl?: string;
+  /** Response shape used by the model catalogue endpoint. */
+  discoveryFormat?: "openai" | "ollama";
+  /** Local providers can bypass the configured remote discovery proxy. */
+  useProxy?: boolean;
+  /** Optional shorter timeout for local availability probes. */
+  discoveryTimeoutMs?: number;
   resolveApiKey: () => Promise<string | undefined>;
   /** Keyless local providers can opt in while still satisfying Pi AI auth semantics. */
   allowKeyless?: boolean;
@@ -73,6 +79,8 @@ export interface CreateBrowserModelRuntimeOptions {
   getProxyUrl: () => Promise<string | undefined>;
   fetchFn?: typeof globalThis.fetch;
 }
+
+export type LocalProviderStatus = "unknown" | "available" | "empty" | "unavailable";
 
 interface DynamicProviderCatalogSpec {
   api: BrowserProviderApi;
@@ -122,7 +130,10 @@ function createStoredApiKeyAuth(args: {
       if (!key && !args.allowKeyless) return undefined;
 
       return {
-        auth: key ? { apiKey: key } : {},
+        // OpenAI-compatible transports require a non-empty apiKey value even
+        // when the local server does not authenticate requests. This sentinel
+        // is never persisted or presented as a user credential.
+        auth: key ? { apiKey: key } : { apiKey: "local-provider" },
         source: key ? "Browser credential store" : "Keyless provider",
       };
     },
@@ -273,7 +284,31 @@ function isModelsResponse(value: DynamicValue): value is DynamicObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
-function parseModelIds(value: DynamicValue): string[] {
+function parseModelIds(value: DynamicValue, format: "openai" | "ollama"): string[] {
+  if (format === "ollama") {
+    if (!isModelsResponse(value) || !Array.isArray(value.models)) {
+      throw new Error("Ollama model discovery response must contain a models array.");
+    }
+    if (value.models.length > MAX_DISCOVERED_MODELS) {
+      throw new Error(`Model discovery returned more than ${MAX_DISCOVERED_MODELS} entries.`);
+    }
+
+    const ids: string[] = [];
+    for (const entry of value.models) {
+      if (!isModelsResponse(entry) || typeof entry.name !== "string") continue;
+      const id = entry.name.trim();
+      if (id.length === 0) continue;
+      if (id.length > MAX_DISCOVERED_MODEL_ID_LENGTH) {
+        throw new Error(
+          `Discovered model id exceeds ${MAX_DISCOVERED_MODEL_ID_LENGTH} characters.`,
+        );
+      }
+      ids.push(id);
+    }
+
+    return Array.from(new Set(ids)).sort((left, right) => left.localeCompare(right));
+  }
+
   if (!isModelsResponse(value) || !Array.isArray(value.data)) {
     throw new Error("Model discovery response must contain a data array.");
   }
@@ -356,7 +391,9 @@ async function readLimitedDiscoveryJson(response: Response): Promise<DynamicValu
 async function resolveDiscoveryRequestUrl(
   targetUrl: string,
   getProxyUrl: () => Promise<string | undefined>,
+  useProxy: boolean,
 ): Promise<string> {
+  if (!useProxy) return targetUrl;
   const proxyUrl = await getProxyUrl();
   if (!proxyUrl) return targetUrl;
   return `${normalizeProxyUrl(proxyUrl)}/?url=${encodeURIComponent(targetUrl)}`;
@@ -368,6 +405,7 @@ async function fetchWithDiscoveryTimeout(
   headers: Record<string, string>,
   signal?: AbortSignal,
   lifecycleSignal?: AbortSignal,
+  timeoutMs = MODEL_DISCOVERY_TIMEOUT_MS,
 ): Promise<Response> {
   const controller = new AbortController();
   const handleAbort = (): void => controller.abort();
@@ -376,7 +414,7 @@ async function fetchWithDiscoveryTimeout(
     if (sourceSignal?.aborted) controller.abort();
     sourceSignal?.addEventListener("abort", handleAbort, { once: true });
   }
-  const timeoutId = setTimeout(() => controller.abort(), MODEL_DISCOVERY_TIMEOUT_MS);
+  const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
 
   try {
     return await fetchFn(requestUrl, {
@@ -427,7 +465,11 @@ function createRegisteredProvider(
     ...(modelsUrl !== undefined
       ? {
         fetchModels: async ({ credential, signal }) => {
-          const requestUrl = await resolveDiscoveryRequestUrl(modelsUrl, getProxyUrl);
+          const requestUrl = await resolveDiscoveryRequestUrl(
+            modelsUrl,
+            getProxyUrl,
+            registration.useProxy !== false,
+          );
           const headers: Record<string, string> = { Accept: "application/json" };
           if (credential?.type === "api_key" && credential.key) {
             headers.Authorization = `Bearer ${credential.key}`;
@@ -439,12 +481,16 @@ function createRegisteredProvider(
             headers,
             signal,
             lifecycleSignal,
+            registration.discoveryTimeoutMs,
           );
           if (!response.ok) {
             throw new Error(`Model discovery failed with HTTP ${response.status}.`);
           }
 
-          const ids = parseModelIds(await readLimitedDiscoveryJson(response));
+          const ids = parseModelIds(
+            await readLimitedDiscoveryJson(response),
+            registration.discoveryFormat ?? "openai",
+          );
           const template = registration.models[0];
           return ids.map((modelId) => createModel({
             providerId: id,
@@ -511,9 +557,11 @@ export class BrowserModelRuntime {
   private readonly getProxyUrl: () => Promise<string | undefined>;
   private readonly fetchFn: typeof globalThis.fetch;
   private readonly builtinProviderIds = new Set<string>();
+  private readonly localProviderIds = new Set<string>();
   private readonly customProviderIds = new Set<string>();
   private readonly extensionProviderOwners = new Map<string, string>();
   private readonly dynamicProviderAbortControllers = new Map<string, AbortController>();
+  private readonly localProviderStatuses = new Map<string, LocalProviderStatus>();
 
   constructor(options: CreateBrowserModelRuntimeOptions) {
     this.modelCatalogs = new BrowserModelCatalogsStore(options.modelCatalogs);
@@ -535,6 +583,25 @@ export class BrowserModelRuntime {
       this.models.setProvider(browserProvider);
       this.builtinProviderIds.add(browserProvider.id);
     }
+
+  }
+
+  /** Register a host-owned local provider that is not user-configured. */
+  registerLocalProvider(registration: BrowserProviderRegistration): void {
+    const providerId = normalizeNonEmpty(registration.id, "Provider id");
+    const provider = this.createDynamicProvider(registration);
+    this.modelCatalogs.configure(provider.id, {
+      api: registration.api,
+      baseUrl: provider.baseUrl ?? normalizeHttpUrl(registration.baseUrl, "Provider baseUrl"),
+    });
+    this.models.setProvider(provider);
+    this.localProviderIds.add(providerId);
+    this.localProviderStatuses.set(providerId, "unknown");
+  }
+
+  /** Return the last network-backed availability state for a local provider. */
+  getLocalProviderStatus(providerId: string): LocalProviderStatus {
+    return this.localProviderStatuses.get(providerId) ?? "unknown";
   }
 
   private createDynamicProvider(registration: BrowserProviderRegistration): Provider {
@@ -561,7 +628,7 @@ export class BrowserModelRuntime {
 
     for (const customProvider of customProviders) {
       for (const registration of customProviderRegistrations(customProvider)) {
-        if (this.builtinProviderIds.has(registration.id)) {
+        if (this.builtinProviderIds.has(registration.id) || this.localProviderIds.has(registration.id)) {
           throw new Error(`Custom provider id conflicts with built-in provider: ${registration.id}`);
         }
         if (this.extensionProviderOwners.has(registration.id)) {
@@ -595,7 +662,11 @@ export class BrowserModelRuntime {
 
   registerExtensionProvider(ownerId: string, registration: BrowserProviderRegistration): void {
     const providerId = normalizeNonEmpty(registration.id, "Provider id");
-    if (this.builtinProviderIds.has(providerId) || this.customProviderIds.has(providerId)) {
+    if (
+      this.builtinProviderIds.has(providerId)
+      || this.localProviderIds.has(providerId)
+      || this.customProviderIds.has(providerId)
+    ) {
       throw new Error(`Provider id is reserved: ${providerId}`);
     }
 
@@ -618,6 +689,7 @@ export class BrowserModelRuntime {
   }
 
   shouldProxyProvider(providerId: string): boolean {
+    if (this.localProviderIds.has(providerId)) return false;
     return this.customProviderIds.has(providerId) || this.extensionProviderOwners.has(providerId);
   }
 
@@ -646,7 +718,19 @@ export class BrowserModelRuntime {
     }
   }
 
-  refresh(options?: ModelsRefreshOptions): Promise<ModelsRefreshResult> {
-    return this.models.refresh(options);
+  async refresh(options?: ModelsRefreshOptions): Promise<ModelsRefreshResult> {
+    const result = await this.models.refresh(options);
+    const allowNetwork = options?.allowNetwork ?? true;
+    if (allowNetwork) {
+      for (const providerId of this.localProviderIds) {
+        const error = result.errors.get(providerId);
+        const modelCount = this.models.getModels(providerId).length;
+        this.localProviderStatuses.set(
+          providerId,
+          error ? "unavailable" : modelCount > 0 ? "available" : "empty",
+        );
+      }
+    }
+    return result;
   }
 }

@@ -12,7 +12,7 @@ import { customElement, property, query, state } from "lit/decorators.js";
 import type { Agent, AgentEvent } from "@earendil-works/pi-agent-core";
 import type { ToolResultMessage } from "@earendil-works/pi-ai";
 import type { StreamingMessageContainer } from "./messages/streaming-message-container.js";
-import { Archive, ChevronRight, FileText, Keyboard, Puzzle, RotateCcw, Ruler, Settings, Wrench } from "lucide";
+import { Archive, BrainCircuit, ChevronRight, FileText, Keyboard, Puzzle, RotateCcw, Ruler, Settings, Wrench } from "lucide";
 import "./pi-input.js";
 import "./working-indicator.js";
 import { initToolGrouping } from "./tool-grouping.js";
@@ -144,6 +144,7 @@ export class PiSidebar extends LitElement {
   @property({ attribute: false }) onOpenRules?: () => void;
   @property({ attribute: false }) onOpenExtensions?: () => void;
   @property({ attribute: false }) onOpenSettings?: () => void;
+  @property({ attribute: false }) onOpenModels?: () => void;
   @property({ attribute: false }) onOpenFilesWorkspace?: () => void;
   @property({ attribute: false }) onFilesDrop?: (files: File[]) => void;
   @property({ attribute: false }) onOpenResumePicker?: () => void;
@@ -1082,6 +1083,9 @@ export class PiSidebar extends LitElement {
       <div class="pi-utilities-menu" id=${this._utilitiesMenuId} role="menu" aria-label=${t("sidebar.utilities.aria")}>
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenSettings?.(); }}>
           <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Wrench, "sm")}</span> ${t("sidebar.menu.setup")}
+        </button>
+        <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenModels?.(); }}>
+          <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(BrainCircuit, "sm")}</span> ${t("sidebar.menu.models")}
         </button>
         <button role="menuitem" class="pi-utilities-menu__item" @click=${() => { this._closeUtilitiesMenu(); this.onOpenExtensions?.(); }}>
           <span class="pi-utilities-menu__item-icon" aria-hidden="true">${icon(Puzzle, "sm")}</span> ${t("sidebar.menu.extensions")}

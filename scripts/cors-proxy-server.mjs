@@ -1,12 +1,12 @@
 #!/usr/bin/env node
 
 /**
- * Minimal CORS proxy for Pi for Excel.
+ * Minimal CORS proxy for EV.
  *
  * Why this exists:
  * - Some provider OAuth/token endpoints (and some LLM APIs) block browser requests via CORS.
  * - In dev we rely on Vite's proxy. In production, you can run this locally and point
- *   Pi for Excel's proxy setting at it (default: https://localhost:3003; if
+ *   EV's proxy setting at it (default: https://localhost:3003; if
  *   3003 is busy and PORT is not set, the helper chooses a random free port).
  *
  * Usage:
@@ -148,7 +148,7 @@ const HOP_BY_HOP_HEADERS = new Set([
 // Default allowlist matches our dev + hosted origins; override via env var.
 const DEFAULT_ALLOWED_ORIGINS = new Set([
   "https://localhost:3141",
-  "https://pi-for-excel.vercel.app",
+  "https://ev-excel.vercel.app",
 ]);
 
 const allowedOrigins = (() => {

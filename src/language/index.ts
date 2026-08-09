@@ -23,6 +23,9 @@ import zhCN from "./locales/zh-CN.json" with { type: "json" };
 export const SUPPORTED_LANGUAGES = ["en", "zh-CN"] as const;
 export type SupportedLanguage = (typeof SUPPORTED_LANGUAGES)[number];
 
+/** Locale keys retained for persisted/legacy locale compatibility. */
+export const RETAINED_LOCALE_KEYS = ["settings.section.language.zh"] as const;
+
 const translations: Record<SupportedLanguage, Record<string, string>> = {
   en,
   "zh-CN": zhCN,

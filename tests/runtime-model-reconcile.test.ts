@@ -37,6 +37,18 @@ void test("leaves runtimes alone when their provider is still configured", () =>
   assert.equal(swap, null);
 });
 
+void test("falls back when the selected model disappears from a configured provider", () => {
+  const swap = resolveRuntimeModelSwap({
+    currentModel: { provider: "ollama" },
+    currentModelAvailable: false,
+    availableProviders: ["openai-codex"],
+    defaultModel: codexModel,
+    isBusy: false,
+  });
+
+  assert.equal(swap?.model.id, codexModel.id);
+});
+
 void test("does not swap while the runtime is working (streaming or queue-busy)", () => {
   // isBusy covers both `agent.state.isStreaming` and `actionQueue.isBusy()`
   // — the latter is true for non-streaming work too (/compact, pre-prompt

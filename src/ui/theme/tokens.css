@@ -12,8 +12,12 @@
   --card-foreground: oklch(0.18 0 0);
   --popover: oklch(1 0 0 / 0.85);
   --popover-foreground: oklch(0.18 0 0);
-  --primary: oklch(0.47 0.13 172); /* EV teal */
-  --primary-foreground: oklch(0.98 0 0);
+  --ev-accent: oklch(0.68 0.18 55);
+  --ev-accent-hover: oklch(0.61 0.19 55);
+  --ev-accent-muted: oklch(0.68 0.18 55 / 0.12);
+  --ev-accent-contrast: oklch(0.18 0.02 55);
+  --primary: var(--ev-accent);
+  --primary-foreground: var(--ev-accent-contrast);
   --secondary: oklch(0.96 0.004 90);
   --secondary-foreground: oklch(0.25 0 0);
   --muted: oklch(0.96 0.003 90);
@@ -89,7 +93,7 @@
 
   /* ── Our custom tokens ───────────────────────────────── */
   --pi-green: var(--primary);
-  --pi-green-strong: oklch(0.42 0.13 172);
+  --pi-green-strong: var(--ev-accent-hover);
   --pi-green-light: oklch(0.47 0.13 172 / 0.08);
   --pi-green-lighter: oklch(0.47 0.13 172 / 0.04);
   --pi-yellow: oklch(0.72 0.16 84);
@@ -155,8 +159,12 @@
   --card-foreground: oklch(0.94 0.005 260);
   --popover: oklch(0.22 0.014 260 / 0.92);
   --popover-foreground: oklch(0.94 0.005 260);
-  --primary: oklch(0.70 0.12 172);
-  --primary-foreground: oklch(0.14 0.02 260);
+  --ev-accent: oklch(0.76 0.16 55);
+  --ev-accent-hover: oklch(0.82 0.14 55);
+  --ev-accent-muted: oklch(0.76 0.16 55 / 0.20);
+  --ev-accent-contrast: oklch(0.16 0.02 55);
+  --primary: var(--ev-accent);
+  --primary-foreground: var(--ev-accent-contrast);
   --secondary: oklch(0.28 0.01 260);
   --secondary-foreground: oklch(0.9 0.004 260);
   --muted: oklch(0.27 0.01 260);
@@ -186,7 +194,7 @@
   --alpha-20: oklch(1 0 0 / 0.20);
   --alpha-25: oklch(1 0 0 / 0.25);
 
-  --pi-green-strong: oklch(0.62 0.14 172);
+  --pi-green-strong: var(--ev-accent-hover);
   --pi-green-light: oklch(0.70 0.13 172 / 0.18);
   --pi-green-lighter: oklch(0.70 0.13 172 / 0.10);
   --pi-yellow: oklch(0.79 0.14 84);
@@ -210,4 +218,48 @@
   --glass-shadow: 0 3px 10px oklch(0 0 0 / 0.35), 0 1px 0 oklch(0 0 0 / 0.2);
   --glass-shadow-lg: 0 16px 44px oklch(0 0 0 / 0.45), 0 4px 10px oklch(0 0 0 / 0.3);
   --glass-border: 1px solid oklch(1 0 0 / 0.14);
+}
+
+/* Accent palette. Components consume the EV tokens above; these selectors
+   only swap the palette and keep the rest of the design system unchanged. */
+:root[data-ev-accent="blue"] {
+  --ev-accent: oklch(0.58 0.18 250);
+  --ev-accent-hover: oklch(0.50 0.19 250);
+  --ev-accent-muted: oklch(0.58 0.18 250 / 0.12);
+}
+:root[data-ev-accent="purple"] {
+  --ev-accent: oklch(0.58 0.19 300);
+  --ev-accent-hover: oklch(0.50 0.20 300);
+  --ev-accent-muted: oklch(0.58 0.19 300 / 0.12);
+}
+:root[data-ev-accent="green"] {
+  --ev-accent: oklch(0.55 0.15 155);
+  --ev-accent-hover: oklch(0.47 0.16 155);
+  --ev-accent-muted: oklch(0.55 0.15 155 / 0.12);
+}
+:root[data-ev-accent="red"] {
+  --ev-accent: oklch(0.58 0.20 25);
+  --ev-accent-hover: oklch(0.50 0.21 25);
+  --ev-accent-muted: oklch(0.58 0.20 25 / 0.12);
+}
+
+.dark[data-ev-accent="blue"] {
+  --ev-accent: oklch(0.72 0.16 250);
+  --ev-accent-hover: oklch(0.80 0.14 250);
+  --ev-accent-muted: oklch(0.72 0.16 250 / 0.20);
+}
+.dark[data-ev-accent="purple"] {
+  --ev-accent: oklch(0.72 0.16 300);
+  --ev-accent-hover: oklch(0.80 0.14 300);
+  --ev-accent-muted: oklch(0.72 0.16 300 / 0.20);
+}
+.dark[data-ev-accent="green"] {
+  --ev-accent: oklch(0.70 0.14 155);
+  --ev-accent-hover: oklch(0.78 0.13 155);
+  --ev-accent-muted: oklch(0.70 0.14 155 / 0.20);
+}
+.dark[data-ev-accent="red"] {
+  --ev-accent: oklch(0.72 0.18 25);
+  --ev-accent-hover: oklch(0.80 0.16 25);
+  --ev-accent-muted: oklch(0.72 0.18 25 / 0.20);
 }

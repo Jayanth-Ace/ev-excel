@@ -40,7 +40,7 @@ type OfficeStreamFn = (
   options?: StreamOptions,
 ) => Promise<AssistantMessageEventStream>;
 
-function shouldProxyProvider(
+export function providerRequiresProxy(
   provider: string,
   apiKey?: string,
   isRuntimeProvider?: (providerId: string) => boolean,
@@ -77,6 +77,14 @@ function shouldProxyProvider(
     default:
       return false;
   }
+}
+
+function shouldProxyProvider(
+  provider: string,
+  apiKey?: string,
+  isRuntimeProvider?: (providerId: string) => boolean,
+): boolean {
+  return providerRequiresProxy(provider, apiKey, isRuntimeProvider);
 }
 
 type OfficeProxyTransport = "codex-websocket";
@@ -589,7 +597,7 @@ export function createOfficeStreamFn(
       if (needsCodexBridge) {
         throw new Error(
           "GPT-5.6 Luna currently requires the latest EV proxy for ChatGPT WebSocket transport. " +
-          "Enable Proxy in Settings and run: npx -y pi-for-excel-proxy@latest",
+          "Enable Proxy in Settings and run: npm run proxy:https",
         );
       }
       return modelsRuntime.streamSimple(normalizedModel, effectiveContext, effectiveOptions);
@@ -607,7 +615,7 @@ export function createOfficeStreamFn(
       if (!bridgeSupported) {
         throw new Error(
           "GPT-5.6 Luna requires a newer EV proxy with ChatGPT WebSocket support. " +
-          "Restart with: npx -y pi-for-excel-proxy@latest (central deployments: ask your administrator to upgrade the proxy).",
+          "Restart with: npm run proxy:https (central deployments: ask your administrator to upgrade the EV proxy).",
         );
       }
       proxyTransport = "codex-websocket";

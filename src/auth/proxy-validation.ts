@@ -49,7 +49,7 @@ export const DEFAULT_PROXY_URL = resolveDefaultProxyUrl(
 
 /**
  * True when this build's default proxy is a remote (org/central) proxy.
- * UI copy uses this to swap local-helper instructions ("run npx pi-for-excel-proxy")
+ * UI copy uses this to swap local-helper instructions ("run npm run proxy:https")
  * for org guidance ("contact IT / check settings").
  */
 export const DEFAULT_PROXY_IS_REMOTE = !isLoopbackProxyUrl(DEFAULT_PROXY_URL);
@@ -65,7 +65,7 @@ export const PROXY_HEALTH_HEADER = "x-pi-for-excel-proxy";
 export const CODEX_WEBSOCKET_BRIDGE_HEADER = "x-pi-for-excel-codex-websocket-bridge";
 
 export const PROXY_HELPER_DOCS_URL =
-  "https://github.com/tmustier/pi-for-excel/blob/main/docs/install.md#oauth-logins-and-cors-proxy";
+  "https://github.com/tmustier/nyx/blob/main/docs/install.md#oauth-logins-and-cors-proxy";
 
 export function normalizeProxyUrl(url: string): string {
   return url.trim().replace(/\/+$/, "");

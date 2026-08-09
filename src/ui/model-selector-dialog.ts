@@ -20,6 +20,7 @@ import {
 } from "@earendil-works/pi-ai";
 
 import { t } from "../language/index.js";
+import type { LocalProviderStatus } from "../models/browser-model-runtime.js";
 import { getActiveProviders } from "../models/active-providers.js";
 import {
   orderModelsForSelector,
@@ -37,6 +38,19 @@ export interface ModelSelectorDialogOptions {
   models: Models;
   currentModel: Model<Api> | null;
   onSelect: (model: Model<Api>) => void;
+  getProviderStatus?: (providerId: string) => LocalProviderStatus;
+  onEnableOllama?: () => Promise<void>;
+  onRefreshModels?: () => Promise<void>;
+}
+
+function displayProvider(provider: string): string {
+  if (provider === "ollama") return "LOCAL · Ollama";
+  const labels: Record<string, string> = {
+    "openai-codex": "OpenAI",
+    "google-gemini-cli": "Google",
+    "google-antigravity": "Google",
+  };
+  return `CLOUD · ${labels[provider] ?? provider}`;
 }
 
 function formatTokenCount(count: number): string {
@@ -146,11 +160,41 @@ export function openModelSelectorDialog(options: ModelSelectorDialogOptions): vo
 
     list.replaceChildren();
 
+    const ollamaStatus = options.getProviderStatus?.("ollama");
+    if (ollamaStatus === "unavailable" || ollamaStatus === "empty") {
+      const status = document.createElement("div");
+      status.className = "pi-model-selector-empty";
+      const message = document.createElement("span");
+      message.textContent = ollamaStatus === "unavailable"
+        ? t("modelSelector.ollamaUnavailable")
+        : t("modelSelector.ollamaEmpty");
+      status.appendChild(message);
+      const action = document.createElement("button");
+      action.type = "button";
+      action.className = "pi-button pi-button--secondary";
+      action.textContent = ollamaStatus === "unavailable"
+        ? t("modelSelector.enableOllama")
+        : t("modelSelector.refreshModels");
+      action.addEventListener("click", () => {
+        void (ollamaStatus === "unavailable"
+          ? options.onEnableOllama?.()
+          : options.onRefreshModels?.());
+      });
+      status.appendChild(action);
+      list.appendChild(status);
+    }
+
     if (filtered.length === 0) {
-      const empty = document.createElement("div");
-      empty.className = "pi-model-selector-empty";
-      empty.textContent = t("modelSelector.noResults");
-      list.appendChild(empty);
+      const normalizedQuery = searchQuery.toLowerCase();
+      const queryMentionsOllama = normalizedQuery.includes("ollama")
+        || normalizedQuery.includes("qwen")
+        || normalizedQuery.includes("local");
+      if (!(queryMentionsOllama && (ollamaStatus === "unavailable" || ollamaStatus === "empty"))) {
+        const empty = document.createElement("div");
+        empty.className = "pi-model-selector-empty";
+        empty.textContent = t("modelSelector.noResults");
+        list.appendChild(empty);
+      }
       return;
     }
 
@@ -184,12 +228,14 @@ export function openModelSelectorDialog(options: ModelSelectorDialogOptions): vo
 
       const providerEl = document.createElement("span");
       providerEl.className = "pi-model-selector-item-provider";
-      providerEl.textContent = item.provider;
+      providerEl.textContent = displayProvider(item.provider);
       topRow.appendChild(providerEl);
 
       const metaRow = document.createElement("span");
       metaRow.className = "pi-model-selector-item-meta";
-      metaRow.textContent = `${formatTokenCount(item.model.contextWindow)} ctx · ${formatTokenCount(item.model.maxTokens)} out`;
+      metaRow.textContent = item.provider === "ollama"
+        ? `${t("modelSelector.available")} · ${formatTokenCount(item.model.contextWindow)} ctx · ${formatTokenCount(item.model.maxTokens)} out`
+        : `${formatTokenCount(item.model.contextWindow)} ctx · ${formatTokenCount(item.model.maxTokens)} out`;
 
       row.append(topRow, metaRow);
 

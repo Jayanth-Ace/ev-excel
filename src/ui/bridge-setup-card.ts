@@ -17,8 +17,8 @@ import {
 import { t } from "../language/index.js";
 import { AlertTriangle, Check, Copy, Terminal, lucide } from "./lucide-icons.js";
 
-export const PYTHON_BRIDGE_SETUP_COMMAND = "npx pi-for-excel-python-bridge";
-export const TMUX_BRIDGE_SETUP_COMMAND = "npx pi-for-excel-tmux-bridge";
+export const PYTHON_BRIDGE_SETUP_COMMAND = "npm run python:bridge:https";
+export const TMUX_BRIDGE_SETUP_COMMAND = "npm run tmux:bridge:https";
 
 export type BridgeSetupCardDetails =
   | TmuxBridgeDetails

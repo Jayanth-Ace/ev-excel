@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 /**
- * Local Python / LibreOffice bridge for Pi for Excel.
+ * Local Python / LibreOffice bridge for EV.
  *
  * Modes:
  * - stub (default): deterministic simulated responses for local development.
@@ -62,7 +62,7 @@ const certPath = resolveOptionalEnvPath("PI_FOR_EXCEL_CERT_PATH") ?? path.join(c
 
 const DEFAULT_ALLOWED_ORIGINS = new Set([
   "https://localhost:3141",
-  "https://pi-for-excel.vercel.app",
+  "https://ev-excel.vercel.app",
 ]);
 
 const MAX_JSON_BODY_BYTES = 512 * 1024;

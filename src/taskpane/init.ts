@@ -37,9 +37,12 @@ function nyxApprovedTargetMatches(scope: NyxApprovalScope, toolName: string, par
 import { html, render } from "lit";
 import { Agent, type AgentTool } from "@earendil-works/pi-agent-core";
 import { getAppStorage } from "../storage/local/app-storage.js";
+import { loadAppearanceSettings } from "../ui/appearance.js";
 import type { SessionData } from "../storage/local/types.js";
 
-import { createOfficeStreamFn } from "../auth/stream-proxy.js";
+import { createOfficeStreamFn, providerRequiresProxy } from "../auth/stream-proxy.js";
+import { createOllamaProvider } from "../models/local-providers.js";
+import { classifyProviderError } from "../auth/provider-error-classification.js";
 import { computeRangeAddress } from "../excel/helpers.js";
 import {
   DEFAULT_PROXY_URL,
@@ -278,6 +281,14 @@ export async function initTaskpane(opts: {
     initLanguage("en");
   }
 
+  // Appearance is session-independent and restored before the first model/UI
+  // refresh. Invalid or legacy values are normalized by the appearance parser.
+  try {
+    await loadAppearanceSettings(settings);
+  } catch {
+    // Keep the safe dark/orange defaults when storage is unavailable.
+  }
+
   // Seed a predictable proxy default for OAuth flows.
   await ensureDefaultProxyUrl(settings, spreadsheetHost.kind);
 
@@ -338,6 +349,8 @@ export async function initTaskpane(opts: {
     modelCatalogs,
     getProxyUrl: getConfiguredProxyUrl,
   });
+  const localOllamaProvider = createOllamaProvider();
+  modelRuntime.registerLocalProvider(localOllamaProvider);
 
   // 2. Resolve available providers from one browser-native runtime. Static,
   // custom, dynamically discovered and extension providers share this path.
@@ -345,7 +358,10 @@ export async function initTaskpane(opts: {
   let defaultModel = pickDefaultModel(modelRuntime.models, [], null);
 
   const updateAvailableProviderState = async (): Promise<void> => {
-    const availableModels = await modelRuntime.models.getAvailable();
+    const availableModels = (await modelRuntime.models.getAvailable()).filter((model) => (
+      model.provider !== localOllamaProvider.id
+      || modelRuntime.getLocalProviderStatus(localOllamaProvider.id) !== "unavailable"
+    ));
     const combinedProviders = new Set(availableModels.map((model) => model.provider));
     availableProviders = Array.from(combinedProviders);
     defaultModel = pickDefaultModel(modelRuntime.models, availableProviders, null);
@@ -758,6 +774,7 @@ export async function initTaskpane(opts: {
       // model instead of prompting for the wrong provider's API key.
       const swap = resolveRuntimeModelSwap({
         currentModel,
+        currentModelAvailable: refreshedModel !== undefined,
         availableProviders,
         defaultModel,
         isBusy: runtime.agent.state.isStreaming || runtime.actionQueue.isBusy(),
@@ -1554,7 +1571,19 @@ export async function initTaskpane(opts: {
               `Network error (likely CORS). If you're using OAuth, enable /settings → Proxy with ${DEFAULT_PROXY_URL} and retry. Guide: ${PROXY_HELPER_DOCS_URL}`,
             );
           } else {
-            showErrorBanner(errorRoot, t("init.llmError", { error: err }));
+            const kind = classifyProviderError(agent.state.model.provider, err);
+            const messageKey = kind === "authentication"
+              ? "init.providerAuthError"
+              : kind === "permission"
+                ? "init.providerPermissionError"
+                : kind === "rate_limit"
+                  ? "init.providerRateLimitError"
+                  : kind === "transient"
+                    ? "init.providerTransientError"
+                    : kind === "invalid_request"
+                      ? "init.providerRequestError"
+                      : "init.llmError";
+            showErrorBanner(errorRoot, t(messageKey, { error: err }));
           }
         }
       } else {
@@ -2144,6 +2173,18 @@ export async function initTaskpane(opts: {
       openModelSelectorDialog({
         models: modelRuntime.models,
         currentModel,
+        getProviderStatus: (providerId) => modelRuntime.getLocalProviderStatus(providerId),
+        onEnableOllama: async () => {
+          try {
+            const relayResponse = await fetch("/ollama-proxy/start", { method: "POST" });
+            if (!relayResponse.ok) throw new Error(`Local Ollama start failed (${relayResponse.status}).`);
+          } catch {
+            // Hosted builds do not have the local dev relay; refresh still
+            // provides the correct stopped/empty state without hiding it.
+          }
+          await refreshRuntimeModels();
+        },
+        onRefreshModels: refreshRuntimeModels,
         onSelect: (model) => {
           void applyModelSelection(targetRuntimeId, model);
         },
@@ -2298,6 +2339,9 @@ export async function initTaskpane(opts: {
   sidebar.onOpenSettings = () => {
     void openSettings();
   };
+  sidebar.onOpenModels = () => {
+    void openSettings("providers");
+  };
   sidebar.onOpenFilesWorkspace = () => {
     void showFilesWorkspaceDialog();
   };
@@ -2363,7 +2407,47 @@ export async function initTaskpane(opts: {
     if (host && messagesContainer) {
       const proxyBanner = createProxyBanner();
       host.insertBefore(proxyBanner.root, messagesContainer);
-      proxyBanner.update(getProxyState());
+
+      let updateSerial = 0;
+      const updateProxyBanner = async (): Promise<void> => {
+        const serial = ++updateSerial;
+        const activeModel = getActiveRuntime()?.agent.state.model;
+        if (!activeModel) {
+          proxyBanner.update(getProxyState(), false);
+          return;
+        }
+
+        let apiKey: string | undefined;
+        try {
+          apiKey = (await modelRuntime.models.getAuth(activeModel.provider))?.auth.apiKey;
+        } catch {
+          // A missing/unavailable credential should not make the banner path
+          // block or crash taskpane startup.
+        }
+
+        if (serial !== updateSerial) return;
+        const requiresProxy = providerRequiresProxy(
+          activeModel.provider,
+          apiKey,
+          (providerId) => modelRuntime.shouldProxyProvider(providerId),
+        );
+        proxyBanner.update(getProxyState(), requiresProxy);
+      };
+
+      // Preserve the legacy initial-state update for the no-runtime startup
+      // state; the provider-aware pass immediately refines it when a runtime
+      // is available.
+      if (!getActiveRuntime()) {
+        proxyBanner.update(getProxyState());
+      }
+      void updateProxyBanner();
+
+      document.addEventListener("pi:model-changed", () => {
+        void updateProxyBanner();
+      });
+      document.addEventListener("pi:models-changed", () => {
+        void updateProxyBanner();
+      });
 
       document.addEventListener("pi:proxy-state-changed", (event: Event) => {
         if (!(event instanceof CustomEvent)) return;
@@ -2371,7 +2455,7 @@ export async function initTaskpane(opts: {
         if (!isTaskpaneInitPayloadShape(detail)) return;
         const state = detail.state;
         if (state === "detected" || state === "not-detected" || state === "unknown") {
-          proxyBanner.update(state);
+          void updateProxyBanner();
         }
       });
     }

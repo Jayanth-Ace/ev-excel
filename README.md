@@ -62,7 +62,7 @@ EV is an AI assistant that lives inside Excel. It reads your workbook, makes cha
 
 ## Install
 
-1. Download [`manifest.prod.xml`](https://pi-for-excel.vercel.app/manifest.prod.xml)
+1. Download [`manifest.prod.xml`](https://ev-excel.vercel.app/manifest.prod.xml)
 2. Add it to Excel — see [**install guide**](docs/install.md) for step-by-step instructions (macOS + Windows)
 3. Click **Open EV** in the ribbon
 4. Connect a provider (API key or OAuth), or configure a custom OpenAI-compatible gateway in `/settings`
@@ -72,15 +72,18 @@ EV is an AI assistant that lives inside Excel. It reads your workbook, makes cha
 
 ### Prerequisites
 
-- **Node.js ≥ 22.19.0** (or ≥24), matching `package.json` engines
+- **Node.js 24.x**, with the tested baseline pinned in `.nvmrc`
 - **mkcert** — for local HTTPS (required by Office.js)
 
 ### Setup
 
 ```bash
-git clone https://github.com/tmustier/pi-for-excel.git
-cd pi-for-excel
+git clone https://github.com/tmustier/nyx.git
+cd nyx
 npm install
+
+npm run setup
+npm run doctor
 
 # Generate local HTTPS certs (Office.js requires HTTPS)
 mkcert -install   # one-time CA setup
@@ -93,7 +96,12 @@ mv localhost.pem cert.pem
 
 ```bash
 npm run dev        # Vite dev server on https://localhost:3141
+npm run sideload   # Start Vite and the Excel debugging session
 ```
+
+`npm run setup` never downloads a model. If `qwen3:4b` is missing, install it
+explicitly with `ollama pull qwen3:4b`. Setup can start an installed Ollama
+server when it is stopped, but it does not install Ollama or download models.
 
 > **Note:** the dev port is `3141` — deliberately off the crowded `:3000`.
 > If you sideloaded a manifest before the move from `:3000`, re-copy
@@ -129,6 +137,11 @@ The dev manifest points to `https://localhost:3141`. The production manifest (`m
 | Command | Description |
 |---|---|
 | `npm run dev` | Start Vite dev server (port 3141, HTTPS) |
+| `npm run setup` | Validate Node, dependencies, Ollama, and the required local model |
+| `npm run doctor` | Print runtime, provider, port, manifest, and Excel diagnostics |
+| `npm run sideload` | Start Vite and the supported Excel debugging session |
+| `npm run stop` | Stop the Office add-in debugging session |
+| `npm run test:ollama` | Make a real qwen3:4b request through Ollama |
 | `npm run dev:portless` | Opt-in: dev server behind portless — [docs/portless.md](./docs/portless.md) |
 | `npm run build` | Production build → `dist/` |
 | `npm run check` | Lint + typecheck + CSS theme checks |
@@ -140,12 +153,48 @@ The dev manifest points to `https://localhost:3141`. The production manifest (`m
 | `npm run proxy:https` | CORS proxy for OAuth flows (default `https://localhost:3003`; random port only if 3003 is busy and no healthy default proxy is already running) |
 | `npm run validate` | Validate the Office add-in manifest |
 
+### Local AI (Ollama)
+
+EV treats Ollama as a first-class local provider. Discovery uses
+`http://127.0.0.1:11434/api/tags` and inference uses the local
+`/v1/chat/completions` endpoint. The Ollama inference path does not use the EV
+remote proxy, OpenAI, Google, or Anthropic APIs, and requires no API key.
+
+Install Ollama from [ollama.com](https://ollama.com/download/mac), then run:
+
+```bash
+ollama pull qwen3:4b
+npm run doctor
+npm run test:ollama
+```
+
+If Ollama is installed but stopped, `npm run setup` and `npm run dev` attempt a
+safe local startup and reconnect. If startup is not possible, start Ollama
+manually; EV reports this as a local-provider state rather than a proxy error.
+
+### Remote AI
+
+Remote providers retain their existing authentication and proxy behavior. OAuth
+providers may require `npm run proxy:https`; direct API-key providers generally
+do not.
+
+### Troubleshooting
+
+- **Node version problem:** run `nvm install 24.18.0 && nvm use 24.18.0`, then
+  `npm install` and `npm run setup`.
+- **Ollama not running:** start Ollama and run `npm run doctor`; EV will reconnect.
+- **Model unavailable:** run `ollama pull qwen3:4b`; EV never downloads it silently.
+- **Excel not launching:** run `npm run stop`, confirm Excel is installed, and
+  retry `npm run sideload`.
+- **Port 3141 occupied:** stop the process using that port, then rerun `npm run dev`.
+- **Remote provider unavailable:** check provider credentials and enable the
+  existing EV proxy only when that provider requires it.
+
 ### CORS proxy
 
 Some OAuth token endpoints are blocked by CORS inside Office webviews. If OAuth login fails:
 
-1. User setup command: `npx pi-for-excel-proxy` (or `curl -fsSL https://piforexcel.com/proxy | sh` if Node is missing)
-2. Dev/source setup command: `npm run proxy:https` (defaults to `https://localhost:3003`; if 3003 is busy for another service, copy the random port printed in the terminal)
+1. Dev/source setup command: `npm run proxy:https` (defaults to `https://localhost:3003`; if 3003 is busy for another service, copy the random port printed in the terminal)
 3. In EV → `/settings` → **Proxy** → enable and set the printed URL
 4. Retry login
 
@@ -155,8 +204,8 @@ API-key auth generally works without the proxy.
 
 Use one-command local bridge helpers:
 
-- Python / LibreOffice bridge: `npx pi-for-excel-python-bridge` (default URL `https://localhost:3340`, real mode)
-- tmux bridge: `npx pi-for-excel-tmux-bridge` (default URL `https://localhost:3341`, real mode)
+- Python / LibreOffice bridge: `npm run python:bridge:https` (default URL `https://localhost:3340`, real mode)
+- tmux bridge: `npm run tmux:bridge:https` (default URL `https://localhost:3341`, real mode)
 
 In EV, these localhost bridge URLs are used by default. Configure `/experimental ...-bridge-url` only when you want a non-default URL.
 
@@ -168,8 +217,8 @@ Real-mode prerequisites:
 
 Optional assisted install (macOS/Homebrew):
 
-- `npx pi-for-excel-python-bridge --install-missing`
-- `npx pi-for-excel-tmux-bridge --install-missing`
+- `PYTHON_BRIDGE_INSTALL_MISSING=1 npm run python:bridge:https`
+- `TMUX_BRIDGE_INSTALL_MISSING=1 npm run tmux:bridge:https`
 
 Manual macOS install:
 
@@ -180,8 +229,8 @@ brew install --cask libreoffice
 
 To force safe simulated mode instead:
 
-- `PYTHON_BRIDGE_MODE=stub npx pi-for-excel-python-bridge`
-- `TMUX_BRIDGE_MODE=stub npx pi-for-excel-tmux-bridge`
+- `PYTHON_BRIDGE_MODE=stub npm run python:bridge:https`
+- `TMUX_BRIDGE_MODE=stub npm run tmux:bridge:https`
 
 Source-checkout alternatives remain available via `npm run python:bridge:https` and `npm run tmux:bridge:https`.
 

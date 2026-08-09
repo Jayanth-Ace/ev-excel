@@ -5,6 +5,18 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import fs from "fs";
 import path from "path";
 import os from "os";
+import http from "node:http";
+import net from "node:net";
+import { commandPath, ensureOllamaServer } from "./scripts/ev-environment.mjs";
+
+type OllamaStartResult = { reachable: boolean; models: string[] };
+type OllamaStarter = (options: { executable: string | null; timeoutMs: number }) => Promise<OllamaStartResult>;
+type CommandResolver = (command: string) => string | null;
+
+// The environment helper is an executable .mjs module, so Vite cannot infer its
+// export types. Keep the boundary assertion concrete and local to this config.
+const startOllama = ensureOllamaServer as OllamaStarter;
+const resolveCommand = commandPath as CommandResolver;
 
 // ============================================================================
 // Plugins
@@ -113,6 +125,96 @@ function proxyEntry(target: string, proxyPath: string) {
   };
 }
 
+function isLoopbackAddress(address: string | undefined): boolean {
+  if (!address) return false;
+  const normalized = address.replace(/^::ffff:/, "");
+  return normalized === "127.0.0.1" || normalized === "::1" || net.isIPv4(normalized) && normalized.startsWith("127.");
+}
+
+function isLoopbackHost(value: string | undefined): boolean {
+  if (!value) return false;
+  const hostname = value.replace(/^\[/, "").split("]")[0].split(":")[0].toLowerCase();
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+/**
+ * Same-origin HTTPS relay for Ollama in the macOS Excel WebView.
+ *
+ * This is deliberately loopback-only and dev-server-only. It prevents the
+ * WebView from making a mixed-content HTTP request while keeping Ollama on
+ * the user's machine and outside the remote EV proxy.
+ */
+function ollamaRelayPlugin(): Plugin {
+  return {
+    name: "ollama-loopback-relay",
+    configureServer(server) {
+      server.middlewares.use("/ollama-proxy", (req, res, next) => {
+        const hostHeader = req.headers.host;
+        if (!isLoopbackAddress(req.socket.remoteAddress) || (hostHeader !== undefined && !isLoopbackHost(hostHeader))) {
+          res.statusCode = 403;
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(JSON.stringify({ error: "Ollama relay is loopback-only." }));
+          return;
+        }
+
+        const targetPath = req.url?.startsWith("/ollama-proxy")
+          ? req.url.slice("/ollama-proxy".length) || "/"
+          : req.url || "/";
+
+        if (targetPath === "/start" && req.method === "POST") {
+          void startOllama({ executable: resolveCommand("ollama"), timeoutMs: 10_000 })
+            .then((result) => {
+              res.statusCode = result.reachable ? 200 : 503;
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              res.end(JSON.stringify({
+                reachable: result.reachable,
+                models: result.models,
+              }));
+            })
+            .catch(() => {
+              res.statusCode = 503;
+              res.setHeader("Content-Type", "application/json; charset=utf-8");
+              res.end(JSON.stringify({ reachable: false, models: [] }));
+            });
+          return;
+        }
+
+        const upstreamHeaders: Record<string, string> = {
+          accept: req.headers.accept ?? "*/*",
+        };
+        const contentType = req.headers["content-type"];
+        if (contentType) upstreamHeaders["content-type"] = contentType;
+        const contentLength = req.headers["content-length"];
+        if (contentLength) upstreamHeaders["content-length"] = contentLength;
+
+        const upstream = http.request({
+          hostname: "127.0.0.1",
+          port: 11_434,
+          path: targetPath,
+          method: req.method,
+          headers: upstreamHeaders,
+        }, (upstreamResponse) => {
+          res.statusCode = upstreamResponse.statusCode ?? 502;
+          for (const [name, value] of Object.entries(upstreamResponse.headers)) {
+            if (name === "connection" || name === "transfer-encoding") continue;
+            if (value !== undefined) res.setHeader(name, value);
+          }
+          upstreamResponse.pipe(res);
+        });
+
+        upstream.once("error", (error) => {
+          if (res.headersSent) return;
+          res.statusCode = 502;
+          res.setHeader("Content-Type", "application/json; charset=utf-8");
+          res.end(JSON.stringify({ error: `Ollama relay unavailable: ${error.message}` }));
+        });
+        req.pipe(upstream);
+        void next;
+      });
+    },
+  };
+}
+
 function buildBrowserAliasMap(): Record<string, string> {
   const resolveFromRoot = (relativePath: string): string => path.resolve(__dirname, relativePath);
 
@@ -200,6 +302,7 @@ const devProxy = resolveDevProxy();
 export default defineConfig({
   plugins: [
     piAuthPlugin(),
+    ollamaRelayPlugin(),
   ],
 
   server: {

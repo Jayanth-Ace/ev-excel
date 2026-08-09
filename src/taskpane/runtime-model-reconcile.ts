@@ -24,6 +24,8 @@ export interface RuntimeModelSwap {
 export function resolveRuntimeModelSwap(opts: {
   /** Only the provider of the runtime's current model matters here. */
   currentModel: { provider: string };
+  /** False when the selected model id disappeared from a refreshed catalogue. */
+  currentModelAvailable?: boolean;
   availableProviders: readonly string[];
   defaultModel: Model<Api>;
   /**
@@ -44,7 +46,7 @@ export function resolveRuntimeModelSwap(opts: {
   if (availableProviders.length === 0) return null;
 
   // Current provider still has credentials — leave the session alone.
-  if (availableProviders.includes(currentModel.provider)) return null;
+  if (opts.currentModelAvailable !== false && availableProviders.includes(currentModel.provider)) return null;
 
   // Only swap onto a model whose provider is actually usable, otherwise we
   // would just trade one wrong API-key prompt for another.
