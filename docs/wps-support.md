@@ -129,7 +129,7 @@ macOS plugin server. This lets Edge talk to WPS' relay server at
 (`信任并安装`). Loading the publish page from `http://10.0.2.2:3889` can leave the
 page unable to populate install rows or can skip the browser-local relay path.
 The installed add-in root should also be `http://127.0.0.1:3889/` in this
-harness; the Pi taskpane URL remains `http://10.0.2.2:3141/src/taskpane.html`.
+harness; the EV taskpane URL remains `http://10.0.2.2:3141/src/taskpane.html`.
 
 ### 2. `jsplugins.xml` mode (enterprise/OEM repack only)
 
@@ -196,7 +196,7 @@ Strict product-level proof is blocked in the current personal WPS
   that calls `alert('MIN_ACTION_FIRED')`. After logged-in trust install, the
   minimal add-in still regenerated `enable:false`; forcing it to `true` loaded
   `manifest.xml`/`ribbon.xml`/`index.html`/`main.js` but recreated
-  `jsaddinblockhost.ini`. This rules out Pi taskpane code, provider/auth code,
+  `jsaddinblockhost.ini`. This rules out EV taskpane code, provider/auth code,
   nested `js/ribbon.js`, and unauthenticated WPS visitor mode as the sole cause.
 - The block also reproduces with a clean current official ET template built from
   `wpsjs@2.2.3` (including generated `functions.json`). After logged-in trust
