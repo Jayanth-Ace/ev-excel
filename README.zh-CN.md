@@ -30,13 +30,13 @@ EV 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载项，支持
 
 下载此文件并保存到容易找到的位置(例如桌面):
 
-👉 **[manifest.prod.xml](https://pi-for-excel.vercel.app/manifest.prod.xml)**
+👉 **[manifest.prod.xml](https://ev-excel.vercel.app/manifest.prod.xml)**
 
 <details>
 <summary>备用下载链接(如上方链接无法访问)</summary>
 
-- 最新 Release:https://github.com/tmustier/pi-for-excel/releases/latest
-- 仓库直链:https://github.com/tmustier/pi-for-excel/blob/main/manifest.prod.xml
+- 最新 Release:https://github.com/tmustier/nyx/releases/latest
+- 仓库直链:https://github.com/tmustier/nyx/blob/main/manifest.prod.xml
 
 </details>
 
@@ -155,7 +155,7 @@ npx pi-for-excel-proxy
 ## 常见问题(简)
 
 - **"我的加载项"里看不到 EV** —— 重启 Excel 再试;确认上传的是 `manifest.prod.xml`(不是 localhost 开发版清单)
-- **侧边栏打开但是空白** —— 你的网络可能无法访问 `https://pi-for-excel.vercel.app`,请尝试更换网络或代理设置
+- **侧边栏打开但是空白** —— 你的网络可能无法访问 EV 托管地址，请尝试更换网络或代理设置
 - **如何更新** —— 大多数更新自动生效,关闭并重新打开侧边栏即可;极少数情况(清单变更)需重新下载并上传 `manifest.prod.xml`
 
 更多排错项见[英文安装指南 · Troubleshooting](./docs/install.md#troubleshooting)。
