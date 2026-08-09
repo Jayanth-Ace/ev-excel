@@ -150,6 +150,19 @@
   --glass-shadow-lg: 0 12px 40px var(--alpha-10), 0 2px 6px var(--alpha-6);
   /* Border: subtle, semi-transparent */
   --glass-border: 1px solid var(--white-alpha-50);
+
+  /* EV mascot palette. */
+  --ev-cat-body: oklch(0.76 0.03 270);
+  --ev-cat-inner: oklch(0.76 0.12 350);
+  --ev-cat-eye: oklch(0.30 0.03 270);
+  --ev-cat-nose: oklch(0.68 0.16 350);
+  --ev-cat-whisker: oklch(0.45 0.03 270 / 0.55);
+  --ev-cat-desk: oklch(0.88 0.025 270);
+  --ev-cat-desk-edge: oklch(0.82 0.03 270);
+  --ev-cat-monitor: oklch(0.80 0.03 270);
+  --ev-cat-monitor-glow: oklch(0.72 0.16 250 / 0.55);
+  --ev-cat-mug: oklch(0.88 0.025 270);
+  --ev-cat-notebook: oklch(0.95 0.08 85);
 }
 
 .dark {
@@ -218,6 +231,18 @@
   --glass-shadow: 0 3px 10px oklch(0 0 0 / 0.35), 0 1px 0 oklch(0 0 0 / 0.2);
   --glass-shadow-lg: 0 16px 44px oklch(0 0 0 / 0.45), 0 4px 10px oklch(0 0 0 / 0.3);
   --glass-border: 1px solid oklch(1 0 0 / 0.14);
+
+  --ev-cat-body: oklch(0.36 0.04 270);
+  --ev-cat-inner: oklch(0.40 0.12 350);
+  --ev-cat-eye: oklch(0.82 0.03 270);
+  --ev-cat-nose: oklch(0.68 0.16 350);
+  --ev-cat-whisker: oklch(0.55 0.04 270 / 0.55);
+  --ev-cat-desk: oklch(0.25 0.025 270);
+  --ev-cat-desk-edge: oklch(0.20 0.025 270);
+  --ev-cat-monitor: oklch(0.29 0.03 270);
+  --ev-cat-monitor-glow: oklch(0.48 0.17 250 / 0.65);
+  --ev-cat-mug: oklch(0.30 0.03 270);
+  --ev-cat-notebook: oklch(0.30 0.09 85);
 }
 
 /* Accent palette. Components consume the EV tokens above; these selectors

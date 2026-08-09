@@ -33,6 +33,7 @@ import {
 } from "../context/selection-snapshot.js";
 import { EMPTY_NYX_UI_STATE, type NyxUiState } from "../nyx/ui-state.js";
 import "./nyx-plan-card.js";
+import "./ev-cat.js";
 
 export interface EmptyHint {
   /** Short text shown on the button. */
@@ -1306,7 +1307,10 @@ export class PiSidebar extends LitElement {
     return html`
       <div class="pi-empty">
         <div class="pi-empty__content">
-          <div class="pi-empty__logo">EV</div>
+          <div class="pi-empty__brand">
+            <div class="pi-empty__logo">EV</div>
+            <ev-cat class="pi-empty__cat" state="sleeping" .size=${92}></ev-cat>
+          </div>
           <p class="pi-empty__tagline">
             ${t("sidebar.empty.tagline")}
           </p>
