@@ -153,6 +153,16 @@ Useful commands:
 
 The UI is first-party Lit code. Core model and agent runtime dependencies are maintained upstream and retained under their original package names for compatibility and attribution. See [ARCHITECTURE.md](ARCHITECTURE.md), [DESIGN_SYSTEM.md](DESIGN_SYSTEM.md), and [docs/README.md](docs/README.md) for deeper project documentation.
 
+## Credits & Upstream
+
+EV is built on top of [pi-mono](https://github.com/badlogic/pi-mono), with substantial modifications and product-specific development for the EV Excel experience.
+
+Special thanks to Mario and the pi-mono contributors for the upstream project and the work that made this foundation possible.
+
+EV's UI, Excel integration, local model integration, product design, and EV-specific features are developed and maintained as part of this project.
+
+Please see [`docs/upstream-divergences.md`](docs/upstream-divergences.md) for details on how EV differs from upstream.
+
 ## License
 
 EV is distributed under the [MIT License](LICENSE). The copyright and attribution notice in that license must remain with distributed copies.
