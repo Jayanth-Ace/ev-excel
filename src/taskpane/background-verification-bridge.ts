@@ -14,6 +14,7 @@ import { getAppStorage } from "../storage/local/app-storage.js";
 import { closeOverlayById } from "../ui/overlay-dialog.js";
 import { MODEL_SELECTOR_OVERLAY_ID } from "../ui/overlay-ids.js";
 import type { PiSidebar } from "../ui/pi-sidebar.js";
+import { EV_BUILD_ID } from "../build-info.js";
 import type { WorkbookContext } from "../workbook/context.js";
 import {
   executeExtensionVerificationCommand,
@@ -652,6 +653,7 @@ async function executeCommand(command: BridgeCommand, options: BridgeOptions): P
       const textarea = options.sidebar.getTextarea();
       return {
         ready: true,
+        buildId: EV_BUILD_ID,
         href: window.location.href,
         origin: window.location.origin,
         visibilityState: document.visibilityState,

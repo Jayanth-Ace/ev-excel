@@ -9,7 +9,10 @@
  */
 
 // MUST be first
+import { EV_BUILD_ID } from "./build-info.js";
 import "./boot.js";
+
+console.info(`[EV] task pane build ${EV_BUILD_ID}`);
 
 // Register first-party web components we rely on.
 import "./ui/register-components.js";

@@ -226,6 +226,13 @@ export function printStatus(title, rows) {
 }
 
 export function environmentSummary(repoRoot) {
+  let build = "unknown-dev-build";
+  try {
+    build = spawnSync("git", ["rev-parse", "--short=12", "HEAD"], { cwd: repoRoot, encoding: "utf8" }).stdout.trim();
+    if (spawnSync("git", ["status", "--porcelain"], { cwd: repoRoot, encoding: "utf8" }).stdout.trim().length > 0) {
+      build += "-dirty";
+    }
+  } catch { /* diagnostic fallback */ }
   return {
     platform: `${process.platform} ${os.release()}`,
     node: process.version,
@@ -233,5 +240,6 @@ export function environmentSummary(repoRoot) {
     dependencies: hasDependencies(repoRoot),
     manifest: fs.existsSync(path.join(repoRoot, "manifest.xml")),
     excel: excelInstalled(),
+    build,
   };
 }

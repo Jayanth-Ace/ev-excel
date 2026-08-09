@@ -13,7 +13,7 @@ import {
   requestOllamaModel,
   ensureOllamaServer,
 } from "./ev-environment.mjs";
-import { inspectDevServer } from "./dev-health.mjs";
+import { inspectDevServer, inspectMacSideloadManifest } from "./dev-health.mjs";
 
 const repoRoot = path.resolve(new URL("..", import.meta.url).pathname);
 const checkOnly = process.argv.includes("--check");
@@ -31,6 +31,7 @@ function run(command, args) {
 
 console.log("EV DOCTOR");
 row("Environment", process.platform === "darwin" ? "PASS" : "NOT VERIFIED", summary.platform);
+row("Build", "PASS", summary.build ?? "unknown-dev-build");
 row("Node/npm", isSupportedNodeVersion(process.version) ? "PASS" : "FAIL", `${process.version}; required Node 24.x`);
 row("Dependencies", hasDependencies(repoRoot) ? "PASS" : "FAIL");
 
@@ -52,8 +53,12 @@ if ("error" in serverInspection) {
 } else {
   row("HTTPS server", serverInspection.taskpane.ok ? "PASS" : "FAIL", "https://localhost:3141");
   row("Taskpane URL", serverInspection.taskpane.ok && serverInspection.sourceMatches ? "PASS" : "FAIL", serverInspection.taskpaneUrl);
-  row("Taskpane module", serverInspection.script.ok ? "PASS" : "FAIL");
+  row("Taskpane module", serverInspection.script.ok && serverInspection.buildMatches ? "PASS" : "FAIL", serverInspection.buildId);
   row("Required assets", serverInspection.assets.every((asset) => asset.ok) ? "PASS" : "FAIL");
+  if (process.platform === "darwin") {
+    const sideloaded = inspectMacSideloadManifest(repoRoot, serverInspection.taskpaneUrl);
+    row("Excel sideload manifest", sideloaded.matches ? "PASS" : "NOT VERIFIED", sideloaded.manifestPath);
+  }
 }
 
 const ollama = commandPath("ollama");

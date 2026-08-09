@@ -7,6 +7,7 @@ import path from "path";
 import os from "os";
 import http from "node:http";
 import net from "node:net";
+import { execFileSync } from "node:child_process";
 import { commandPath, ensureOllamaServer } from "./scripts/ev-environment.mjs";
 import { validateDevCertificates } from "./scripts/certificates.mjs";
 
@@ -28,6 +29,20 @@ const validateCertificates = validateDevCertificates as (
 // ============================================================================
 // Plugins
 // ============================================================================
+
+/** Exposes the current source identity in HTML for local Excel diagnostics. */
+function evBuildMarkerPlugin(buildId: string): Plugin {
+  return {
+    name: "ev-build-marker",
+    transformIndexHtml(html) {
+      return html.replace(
+        "</head>",
+        `  <meta name="ev-build-id" content="${buildId}">
+</head>`,
+      );
+    },
+  };
+}
 
 /**
  * Serves pi's ~/.pi/agent/auth.json so the browser can reuse
@@ -309,8 +324,19 @@ if (!devProxy && !certificateValidation.valid) {
 }
 const hasHttpsCerts = certificateValidation.valid;
 
+function resolveBuildId(): string {
+  try {
+    const commit = execFileSync("git", ["rev-parse", "--short=12", "HEAD"], { encoding: "utf8" }).trim();
+    const dirty = execFileSync("git", ["status", "--porcelain"], { encoding: "utf8" }).trim().length > 0;
+    return `${commit}${dirty ? "-dirty" : ""}`;
+  } catch {
+    return "unknown-dev-build";
+  }
+}
+
 export default defineConfig({
   plugins: [
+    evBuildMarkerPlugin(resolveBuildId()),
     piAuthPlugin(),
     ollamaRelayPlugin(),
   ],
