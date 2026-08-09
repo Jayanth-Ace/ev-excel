@@ -519,7 +519,11 @@ function withOllamaPayloadPolicy(options: StreamOptions | undefined): StreamOpti
 export function stripOllamaThinkingText(text: string): string {
   return text
     .replace(/<think>[\s\S]*?(?:<\/think>|$)/giu, "")
-    .replace(/^[\s\S]*?<\/think>/iu, "");
+    .replace(/^[\s\S]*?<\/think>/iu, "")
+    .replace(/<tools>[\s\S]*?(?:<\/tools>|$)/giu, "")
+    .replace(/<tool_call>[\s\S]*?(?:<\/tool_call>|$)/giu, "")
+    .replace(/<\/tool_call>/giu, "")
+    .trim();
 }
 
 function sanitizeOllamaMessage(message: AssistantMessage): AssistantMessage {

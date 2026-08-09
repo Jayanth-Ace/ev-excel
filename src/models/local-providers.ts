@@ -6,6 +6,35 @@ function isOllamaPayload(value: DynamicValue): value is DynamicObject {
   return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
+function isDynamicArray(value: DynamicValue): value is readonly DynamicValue[] {
+  return Array.isArray(value);
+}
+
+function appendQwenNoThinkControl(messages: DynamicValue): DynamicValue {
+  if (!isDynamicArray(messages)) return messages;
+
+  let lastUserIndex = -1;
+  for (let index = messages.length - 1; index >= 0; index -= 1) {
+    const message = messages[index];
+    if (isOllamaPayload(message) && message.role === "user") {
+      lastUserIndex = index;
+      break;
+    }
+  }
+
+  if (lastUserIndex < 0) return messages;
+  const message = messages[lastUserIndex];
+  if (!isOllamaPayload(message) || typeof message.content !== "string") return messages;
+  if (message.content.includes("/no_think")) return messages;
+
+  const updatedMessages = [...messages];
+  updatedMessages[lastUserIndex] = {
+    ...message,
+    content: `${message.content}\n/no_think`,
+  };
+  return updatedMessages;
+}
+
 /**
  * Disable Qwen's private reasoning channel while preserving the normal request
  * messages and tool definitions. Ollama otherwise returns reasoning text in a
@@ -20,6 +49,11 @@ export function disableOllamaThinking(payload: DynamicValue): DynamicValue {
   return {
     ...payload,
     reasoning_effort: "none",
+    // Ollama's OpenAI-compatible server does not consistently translate
+    // `reasoning_effort` for Qwen models. Qwen recognizes this control token
+    // in the user turn, so add it to the outbound copy rather than mutating
+    // the conversation stored by EV.
+    messages: appendQwenNoThinkControl(payload.messages),
     chat_template_kwargs: {
       ...existingKwargs,
       enable_thinking: false,

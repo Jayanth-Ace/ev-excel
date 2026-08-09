@@ -27,10 +27,12 @@ void test("Ollama disables Qwen private reasoning without removing tools", () =>
 
   assert.deepEqual(payload["chat_template_kwargs"], { enable_thinking: false });
   assert.deepEqual(payload["tools"], [{ type: "function", function: { name: "read_range" } }]);
-  assert.deepEqual(payload["messages"], [{ role: "user", content: "hello" }]);
+  assert.deepEqual(payload["messages"], [{ role: "user", content: "hello\n/no_think" }]);
 });
 
 void test("Ollama protocol reasoning is never treated as visible answer text", () => {
   assert.equal(stripOllamaThinkingText("<think>private instructions</think>Visible answer"), "Visible answer");
   assert.equal(stripOllamaThinkingText("<think>private instructions"), "");
+  assert.equal(stripOllamaThinkingText("<tool_call>{\"name\":\"write_cells\"}</tool_call>"), "");
+  assert.equal(stripOllamaThinkingText("<tool_call>{\"name\":\"write_cells\"}"), "");
 });
