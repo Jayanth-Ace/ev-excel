@@ -8,13 +8,14 @@ The implementation is the authority. Some DOM classes retain `pi-` names for com
 
 EV is a narrow, vertically scrolling Excel task-pane application. The primary surface is a light-DOM Lit sidebar assembled by `PiSidebar`:
 
-1. Optional session tabs and the utilities menu.
-2. A scrollable conversation or empty state.
-3. A working/streaming indicator.
-4. An optional Excel selection card.
-5. An optional Nyx planning/run card.
-6. The chat composer with attachment, send, stop, and drag-and-drop behavior.
-7. A compact status bar with model, context, execution mode, and related indicators.
+1. A compact EV shell header with the wordmark, model action, chat-focus action, and settings action.
+2. Optional session tabs and the utilities menu.
+3. A scrollable conversation or empty state.
+4. A working/streaming indicator.
+5. An optional Excel selection card.
+6. An optional Nyx planning/run card.
+7. The chat composer with attachment, send, stop, and drag-and-drop behavior.
+8. A compact status bar with model, context, execution mode, and related indicators.
 
 Settings, provider login, model selection, files, recovery, extensions, rules, shortcuts, and experimental controls appear as overlays or nested settings pages rather than separate task-pane routes.
 
@@ -32,13 +33,14 @@ Only surfaces implemented in source are listed below.
 
 ### Main task pane and navigation
 
-- Main `pi-sidebar` shell.
+- Main `pi-sidebar` shell with the Figma-aligned EV header.
+- Header wordmark, model selector action, chat-focus action, and settings action.
 - Session-tab strip, when session tabs exist. Tabs support selection, creation, close, rename by double-click, reorder, duplicate, close-other, and a floating context menu.
 - Utilities button with menu entries for Setup, Models, Extensions, Files, Rules, Resume, Backups, and Keyboard shortcuts.
 - Scroll arrows for overflowing session tabs.
-- The application has no separate top navigation bar inside the pane.
+- The header is intentionally compact; session navigation remains a separate strip below it when multiple sessions exist.
 
-Source: [src/ui/pi-sidebar.ts](../../src/ui/pi-sidebar.ts), [src/ui/theme/components/tabs.css](../../src/ui/theme/components/tabs.css), [src/ui/theme/components/menus.css](../../src/ui/theme/components/menus.css).
+Source: [src/ui/pi-sidebar.ts](../../src/ui/pi-sidebar.ts), [app-header.css](../../src/ui/theme/components/app-header.css), [tabs.css](../../src/ui/theme/components/tabs.css), [menus.css](../../src/ui/theme/components/menus.css).
 
 ### Empty state
 
@@ -48,7 +50,7 @@ When the active session has no messages, the pane shows:
 - A localized tagline.
 - A vertical list of clickable prompt hints, each with a label and shortened prompt preview.
 
-The logo is hidden in short-height task panes. Hint cards use the same translucent/card language as the composer and selection card.
+The logo is hidden in short-height task panes. The inline cat includes the Figma desk, monitor details, notebook, mug, idea motif, and reduced-motion-safe animation. Hint cards use the same translucent/card language as the composer and selection card.
 
 Source: `PiSidebar._renderEmptyState()` in [src/ui/pi-sidebar.ts](../../src/ui/pi-sidebar.ts), [empty-state.css](../../src/ui/theme/components/empty-state.css).
 
@@ -189,7 +191,7 @@ Icons are primarily Lucide icons rendered by [src/ui/icons.ts](../../src/ui/icon
 
 | Component/surface | Current implementation | Styling |
 |---|---|---|
-| Sidebar shell | `PiSidebar` | `components.css`, tabs, menus, status |
+| Sidebar shell/header | `PiSidebar` | `components.css`, `app-header.css`, tabs, menus, status |
 | Session tabs | `PiSidebar` render methods | `tabs.css` |
 | Utilities/context menus | `PiSidebar` render methods | `menus.css` |
 | Empty state | `PiSidebar._renderEmptyState` | `empty-state.css` |

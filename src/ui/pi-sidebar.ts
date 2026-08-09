@@ -12,7 +12,7 @@ import { customElement, property, query, state } from "lit/decorators.js";
 import type { Agent, AgentEvent } from "@earendil-works/pi-agent-core";
 import type { ToolResultMessage } from "@earendil-works/pi-ai";
 import type { StreamingMessageContainer } from "./messages/streaming-message-container.js";
-import { Archive, BrainCircuit, ChevronRight, FileText, Keyboard, Puzzle, RotateCcw, Ruler, Settings, Wrench } from "lucide";
+import { Archive, BrainCircuit, ChevronRight, FileText, Keyboard, MessageCircle, Puzzle, RotateCcw, Ruler, Settings, Wrench } from "lucide";
 import "./pi-input.js";
 import "./working-indicator.js";
 import { initToolGrouping } from "./tool-grouping.js";
@@ -257,6 +257,11 @@ export class PiSidebar extends LitElement {
     }
 
     return false;
+  }
+
+  /** Focus the native composer from the Figma-aligned header chat action. */
+  private _focusComposer(): void {
+    this._input?.getTextarea().focus();
   }
 
   /** Force re-sync from agent state (e.g. after replaceMessages). */
@@ -719,6 +724,7 @@ export class PiSidebar extends LitElement {
     const hasMessages = this._hasMessages || state.messages.length > 0;
 
     return html`
+      ${this._renderAppHeader()}
       ${this._renderSessionTabs()}
       ${this._renderTabContextMenuOverlay()}
       <div class="pi-messages">
@@ -768,6 +774,49 @@ export class PiSidebar extends LitElement {
         ></pi-input>
         <div id="pi-status-bar" class="pi-status-bar"></div>
       </div>
+    `;
+  }
+
+  private _renderAppHeader() {
+    const model = this.agent?.state.model;
+    const modelLabel = model?.name || model?.id || t("status.select_model");
+
+    return html`
+      <header class="ev-app-header">
+        <button
+          type="button"
+          class="ev-app-header__wordmark"
+          @click=${() => this._focusComposer()}
+          aria-label=${t("sidebar.header.chat")}
+        >
+          <span>e</span><b aria-hidden="true">·</b><span>v</span>
+        </button>
+        <div class="ev-app-header__spacer"></div>
+        <button
+          type="button"
+          class="ev-app-header__model"
+          @click=${() => this.onOpenModels?.()}
+          aria-label=${t("sidebar.menu.models")}
+          title=${t("sidebar.menu.models")}
+        >
+          <span>${modelLabel}</span>
+          ${icon(ChevronRight, "xs")}
+        </button>
+        <button
+          type="button"
+          class="ev-app-header__action"
+          @click=${() => this._focusComposer()}
+          aria-label=${t("sidebar.header.chat")}
+          title=${t("sidebar.header.chat")}
+        >${icon(MessageCircle, "sm")}</button>
+        <button
+          type="button"
+          class="ev-app-header__action ${this._utilitiesMenuOpen ? "is-active" : ""}"
+          @click=${() => this.onOpenSettings?.()}
+          aria-label=${t("sidebar.menu.setup")}
+          title=${t("sidebar.menu.setup")}
+        >${icon(Settings, "sm")}</button>
+      </header>
     `;
   }
 

@@ -1013,6 +1013,7 @@
   "sidebar.menu.resume": "Resume session",
   "sidebar.menu.rules": "Rules",
   "sidebar.menu.setup": "Settings",
+  "sidebar.header.chat": "Focus chat composer",
   "sidebar.tabs.close": "Close tab",
   "sidebar.tabs.close.wait": "Wait for workbook changes to complete",
   "sidebar.tabs.lock": "Locking…",

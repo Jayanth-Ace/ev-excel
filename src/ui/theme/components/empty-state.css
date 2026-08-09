@@ -55,9 +55,17 @@
 .ev-cat__desk-edge { fill: var(--ev-cat-desk-edge); }
 .ev-cat__monitor { fill: var(--ev-cat-monitor); }
 .ev-cat__monitor-glow { fill: var(--ev-cat-monitor-glow); }
+.ev-cat__monitor-line { stroke: white; stroke-width: 1.2; opacity: 0.45; }
+.ev-cat__monitor-line--mid { opacity: 0.3; }
+.ev-cat__monitor-line--low { opacity: 0.2; }
 .ev-cat__notebook { fill: var(--ev-cat-notebook); }
 .ev-cat__mug { fill: var(--ev-cat-mug); stroke: var(--ev-cat-mug); stroke-width: 3; stroke-linecap: round; }
 .ev-cat__desk-line { stroke: var(--ev-cat-desk-edge); stroke-width: 0.9; opacity: 0.7; }
+.ev-cat__desk-line--short { opacity: 0.5; }
+.ev-cat__toe { fill: none; stroke: var(--ev-cat-desk-edge); stroke-width: 0.9; opacity: 0.5; }
+.ev-cat__idea circle { fill: var(--muted-foreground); opacity: 0.4; }
+.ev-cat__idea circle + circle { opacity: 0.3; }
+.ev-cat__idea line { stroke: var(--muted-foreground); stroke-width: 0.8; opacity: 0.3; }
 .ev-cat__steam { fill: none; stroke: var(--muted-foreground); stroke-width: 1.5; stroke-linecap: round; opacity: 0.65; animation: ev-cat-steam 2.2s ease-out infinite; }
 .ev-cat__steam--two { animation-delay: 0.75s; }
 .ev-cat__tail { fill: none; stroke: var(--ev-cat-body); stroke-width: 7.5; stroke-linecap: round; animation: ev-cat-tail 9s ease-in-out infinite 2s; transform-origin: 104px 90px; }

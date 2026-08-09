@@ -1013,6 +1013,7 @@
   "sidebar.menu.resume": "恢复会话",
   "sidebar.menu.rules": "规则",
   "sidebar.menu.setup": "设置",
+  "sidebar.header.chat": "聚焦聊天输入框",
   "sidebar.tabs.close": "关闭标签页",
   "sidebar.tabs.close.wait": "等待工作簿更改完成",
   "sidebar.tabs.lock": "锁定中…",
