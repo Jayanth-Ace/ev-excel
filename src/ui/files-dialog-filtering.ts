@@ -72,7 +72,7 @@ export function resolveFilesDialogBadge(file: WorkspaceFileEntry): FilesDialogBa
 
 export function resolveFilesDialogSourceLabel(file: WorkspaceFileEntry): string {
   if (isFilesDialogBuiltInDoc(file)) {
-    return "Pi documentation";
+    return "EV documentation";
   }
 
   if (isAgentWrittenNotesFilePath(file.path)) {
@@ -280,7 +280,7 @@ export function buildFilesDialogSections(args: {
     });
   }
 
-  // ── PI'S NOTES ──
+  // ── EV'S NOTES ──
   if (notesFiles.length > 0) {
     const { rootFiles, folders } = groupByFirstDirectory(notesFiles, "notes/");
     sections.push({

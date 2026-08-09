@@ -43,7 +43,7 @@ Requirements:
 - `python3` must be on `PATH` (or set `PYTHON_BRIDGE_PYTHON_BIN`)
 - LibreOffice (`soffice`) is optional — only needed for `libreoffice_convert`
 
-### 2. Configure in Pi (optional)
+### 2. Configure in EV (optional)
 
 The default URL (`https://localhost:3340`) works automatically. Override if needed:
 
@@ -56,7 +56,7 @@ Or use: `/extensions` → **Connections** → **Python bridge**
 
 ### 3. First execution
 
-The first time Python runs through the native bridge, Pi will ask for explicit user confirmation (one-time per bridge URL).
+The first time Python runs through the native bridge, EV will ask for explicit user confirmation (one-time per bridge URL).
 
 ## Tools
 

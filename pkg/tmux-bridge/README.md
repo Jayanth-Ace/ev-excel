@@ -1,6 +1,6 @@
 # pi-for-excel-tmux-bridge
 
-Local HTTPS tmux bridge helper for Pi for Excel.
+Local HTTPS tmux bridge helper for EV.
 
 ## Usage
 
@@ -31,7 +31,7 @@ To force safe simulated mode:
 TMUX_BRIDGE_MODE=stub npx pi-for-excel-tmux-bridge
 ```
 
-Then in Pi for Excel:
+Then in EV:
 
 1. The default tmux bridge URL is already `https://localhost:3341`
 2. (Optional) set `/experimental tmux-bridge-url <url>` to use a non-default URL

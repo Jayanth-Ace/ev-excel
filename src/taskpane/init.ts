@@ -379,9 +379,16 @@ export async function initTaskpane(opts: {
     await restoreModelCatalogs();
   };
 
+  // Provider settings can emit several changes during one login/logout flow.
+  // Serialize the refresh and request one follow-up pass instead of allowing
+  // overlapping catalogues to race and restore stale model state.
+  const refreshProvidersAfterChange = createAsyncCoalescer(async () => {
+    await refreshConfiguredProviders();
+    await refreshRuntimeModels();
+  });
+
   document.addEventListener("pi:providers-changed", () => {
-    void refreshConfiguredProviders()
-      .then(() => refreshRuntimeModels())
+    void refreshProvidersAfterChange()
       .catch((error: DynamicValue) => {
         console.warn("[auth] Provider refresh after settings change failed:", error);
       });
@@ -394,8 +401,7 @@ export async function initTaskpane(opts: {
 
   void credentialRestorePromise
     .then(() => {
-      void refreshConfiguredProviders()
-        .then(() => refreshRuntimeModels())
+      void refreshProvidersAfterChange()
         .catch((error: DynamicValue) => {
           console.warn("[auth] Provider refresh after credential restore failed:", error);
         });
@@ -1539,7 +1545,7 @@ export async function initTaskpane(opts: {
             showErrorBanner(
               errorRoot,
               autoCompactEnabled
-                ? "Context window exceeded — Pi will try compacting older history and retrying once. If this error persists, run /compact, scope your request to a smaller range, or use a larger-context model."
+                ? "Context window exceeded — EV will try compacting older history and retrying once. If this error persists, run /compact, scope your request to a smaller range, or use a larger-context model."
                 : "Context window exceeded. Run /compact to free up context, scope your request to a smaller range, or use a larger-context model.",
             );
           } else if (isLikelyCorsErrorMessage(err)) {

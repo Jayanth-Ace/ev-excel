@@ -1,5 +1,5 @@
 /**
- * Pi for Excel — UI components barrel export.
+ * EV — UI components barrel export.
  *
  * Each component is in its own file for easy swapping.
  * Import theme.css separately in boot.ts.

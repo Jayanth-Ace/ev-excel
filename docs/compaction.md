@@ -1,6 +1,6 @@
 # Compaction (`/compact`)
 
-Pi for Excel runs each chat inside the selected model’s **context window** (e.g. Claude Opus 4.6: 200k tokens). When the conversation grows too large, requests will fail with errors like **“prompt is too long”**.
+EV runs each chat inside the selected model’s **context window** (e.g. Claude Opus 4.6: 200k tokens). When the conversation grows too large, requests will fail with errors like **“prompt is too long”**.
 
 `/compact` is the manual escape hatch: it **replaces older history with a structured summary**, while keeping the most recent work verbatim.
 
@@ -10,7 +10,7 @@ Auto-compaction (enabled by default, `compaction.enabled`) uses the shared hard 
 
 1. **Before a queued prompt** — projected context (current estimate + the new prompt) exceeds the hard trigger.
 2. **Mid-turn, between tool-loop continuations** — after each completed tool batch, so a single tool-heavy turn can’t overflow a small context window before the next between-prompt check. The in-flight run continues from the compacted history.
-3. **Context-overflow recovery** — when a run still ends in a provider context-overflow error (e.g. a LiteLLM `ContextWindowExceededError`), Pi drops the failed assistant message, compacts, and retries the turn **once**. A second overflow stays in the transcript with an actionable error banner pointing at `/compact`.
+3. **Context-overflow recovery** — when a run still ends in a provider context-overflow error (e.g. a LiteLLM `ContextWindowExceededError`), EV drops the failed assistant message, compacts, and retries the turn **once**. A second overflow stays in the transcript with an actionable error banner pointing at `/compact`.
 
 When auto-compaction is disabled, overflow errors surface a banner suggesting `/compact`, scoping the request, or a larger-context model — instead of the raw provider error.
 

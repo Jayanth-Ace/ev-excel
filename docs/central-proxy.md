@@ -1,8 +1,8 @@
 # Org-hosted central CORS proxy
 
-**Audience:** IT admins / platform teams rolling out Pi for Excel across an organisation.
+**Audience:** IT admins / platform teams rolling out EV across an organisation.
 
-By default, Pi for Excel expects each user to run the CORS proxy locally (`https://localhost:3003`, see [install.md](./install.md#oauth-logins-and-cors-proxy)). That requires Node.js on every machine. For managed rollouts you can instead run **one proxy on a central server** and build the add-in so it points there by default.
+By default, EV expects each user to run the CORS proxy locally (`https://localhost:3003`, see [install.md](./install.md#oauth-logins-and-cors-proxy)). That requires Node.js on every machine. For managed rollouts you can instead run **one proxy on a central server** and build the add-in so it points there by default.
 
 This guide covers both halves:
 

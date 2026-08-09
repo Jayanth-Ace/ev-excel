@@ -2,7 +2,7 @@
  * Workbook recovery snapshots.
  *
  * Stores lightweight, local-only backups for workbook cell edits so users
- * can revert Pi's changes without pre-execution approval prompts.
+ * can revert EV's changes without pre-execution approval prompts.
  */
 
 import { excelRun, getRange } from "../excel/helpers.js";

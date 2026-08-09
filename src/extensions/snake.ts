@@ -1,5 +1,5 @@
 /**
- * Snake game extension for Pi for Excel.
+ * Snake game extension for EV.
  * Renders as an inline widget above the input — messages stay visible above.
  */
 

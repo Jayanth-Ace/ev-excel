@@ -75,7 +75,7 @@ See `tasks/example-doctor.yaml`. Key doctrines:
    background-verification bridge (see
    `.agents/skills/excel-background-verification/`).
 2. Copy the seed workbook to a scratch path; open in Excel (`open -g`).
-3. Open the Pi taskpane in that workbook window (semantic AX press only).
+3. Open the EV taskpane in that workbook window (semantic AX press only).
 4. `bridge.sh clients` → target the new client id; set model/session.
 5. Submit the task prompt via bridge `submitPrompt`.
 6. `bridge.sh watch <clientId>` until idle.

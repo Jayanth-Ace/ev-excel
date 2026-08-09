@@ -110,7 +110,7 @@ void test("buildFilesDialogSections groups files by category with folder groups"
 
   assert.deepEqual(sections.map((s) => s.label), [
     "YOUR FILES",
-    "PI'S NOTES",
+    "EV'S NOTES",
     "SKILLS",
     "FROM PROJECT DOCS",
     "BUILT-IN DOCS",
@@ -205,7 +205,7 @@ void test("resolveFilesDialogSourceLabel maps each source", () => {
     sourceKind: "builtin-doc",
     locationKind: "builtin-doc",
     readOnly: true,
-  })), "Pi documentation");
+  })), "EV documentation");
 
   assert.equal(resolveFilesDialogSourceLabel(makeFile("notes/today.md")), "Written by agent");
   assert.equal(resolveFilesDialogSourceLabel(makeFile("folder/readme.md", { locationKind: "native-directory" })), "Local file");
@@ -251,4 +251,3 @@ void test("resolveFilesDialogConnectFolderButtonState reflects backend status", 
     title: "Folder already connected",
   });
 });
-

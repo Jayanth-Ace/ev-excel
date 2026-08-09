@@ -19,7 +19,7 @@ This doc describes how to update:
 - **Custom gateways:** baseline models remain in `CustomProvidersStore`; `/models` discovery overlays them without deleting the configured fallback model.
 - **Extension providers:** `api.models.registerProvider()` declarations are runtime-owned and unload with their extension. Unregistering aborts in-flight discovery before deleting its cache so late responses cannot resurrect stale entries.
 
-Do not use Pi coding-agent's Node/file `ModelRuntime` directly in the Office WebView. Pi for Excel uses the same Pi AI provider primitives with browser storage, OAuth and proxy policy. Cross-check the installed Pi package and changelog when the generated registry changes. Never infer aliases or metadata from marketing names.
+Do not use Pi coding-agent's Node/file `ModelRuntime` directly in the Office WebView. EV uses the same Pi AI provider primitives with browser storage, OAuth and proxy policy. Cross-check the installed Pi package and changelog when the generated registry changes. Never infer aliases or metadata from marketing names.
 
 ### Current GPT-5.6 registry snapshot (`pi-ai` 0.80.8)
 
@@ -109,7 +109,7 @@ npm run test:models
 If an ID doesn’t appear there, **don’t** add it to the add-in yet—either:
 - bump `@earendil-works/pi-ai` further, or
 - use an older/fallback ID, or
-- configure a custom gateway baseline model in Pi for Excel.
+  - configure a custom gateway baseline model in EV.
 
 ### 5) Update model ordering + default selection logic (avoid hardcoding exact IDs)
 
@@ -149,7 +149,7 @@ We intentionally avoid pinning exact versioned IDs now. Instead we:
   - `parseMajorMinor()` + `modelRecencyScore()` (treats `4-6` / `4.6` as `46`, `5.6` as `56`, keeps embedded date suffixes such as `YYYYMMDD` separate, and ignores later date-like suffixes such as `gpt-4o-2024-11-20` or `gemini-2.5-pro-preview-06-05` when extracting the family version)
   - `compareModels()` (provider + family + recency tie-breaks; deterministic sorting)
 
-  UI: the model picker is opened from the footer status bar (click the π model button).
+  UI: the model picker is opened from the footer status bar (click the EV model button).
 
 - Pick the default model via provider-aware rules:
   - Anthropic is a small special-case: latest Opus by default while Fable is in the registry but unavailable; Sonnet and Fable remain fallbacks if Opus is absent.

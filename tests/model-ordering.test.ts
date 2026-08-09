@@ -359,6 +359,16 @@ void test("pickDefaultModel tolerates unknown provider names", () => {
   assert.equal(selected.id, "gpt-5.4-mini");
 });
 
+void test("pickDefaultModel ignores a persisted model from an unavailable provider", () => {
+  const selected = pickDefaultModelFromRuntime(
+    modelsRuntime,
+    ["openai"],
+    getModel("anthropic", "claude-opus-4-8"),
+  );
+
+  assert.equal(selected.provider, "openai");
+});
+
 void test("pickDefaultModel prefers GPT-5.6 Sol when OpenAI and Anthropic are both available", () => {
   const selected = pickDefaultModel(["anthropic", "openai"]);
   assert.equal(selected.provider, "openai");

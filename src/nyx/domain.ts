@@ -3,7 +3,7 @@
  *
  * These types intentionally contain no Office.js, Lit, model-provider, or
  * persistence dependencies. They are the boundary between product state and
- * the current Pi runtime.
+ * the current EV runtime.
  */
 
 export const NYX_PLAN_VERSION = 1 as const;

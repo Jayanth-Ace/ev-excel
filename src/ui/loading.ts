@@ -1,5 +1,5 @@
 /**
- * Pi for Excel — Loading and error state components.
+ * EV — loading and error state components.
  *
  * Extracted for easy swapping / versioning.
  */
@@ -12,7 +12,7 @@ import { t } from "../language/index.js";
  */
 export function renderLoading(): TemplateResult {
   return html`
-    <div class="pi-loading">
+    <div class="pi-loading" role="status" aria-live="polite" aria-label="EV is loading">
       <div class="pi-loading__spinner">
         <div class="pi-loading__ring"></div>
         <div class="pi-loading__ring pi-loading__ring--inner"></div>
@@ -28,4 +28,3 @@ export function renderLoading(): TemplateResult {
 export function renderError(message: string): TemplateResult {
   return html`<div class="pi-error">${message}</div>`;
 }
-

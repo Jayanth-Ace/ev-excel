@@ -116,8 +116,8 @@ function createMockFileItem(name: string, meta: string, badgeLabel?: string): HT
   return row;
 }
 
-fileItemSection.appendChild(createMockFileItem("cache-observability-baselines.md", "Pi documentation · 2.98 KB", "Read only"));
-fileItemSection.appendChild(createMockFileItem("context-management-policy.md", "Pi documentation · 12.0 KB", "Read only"));
+fileItemSection.appendChild(createMockFileItem("cache-observability-baselines.md", "EV documentation · 2.98 KB", "Read only"));
+fileItemSection.appendChild(createMockFileItem("context-management-policy.md", "EV documentation · 12.0 KB", "Read only"));
 fileItemSection.appendChild(createMockFileItem("quarterly-report.xlsx", "1.2 MB · Uploaded · 2h ago"));
 
 /* ── 3. Tool Cards ───────────────────────────────────── */
@@ -269,7 +269,7 @@ const previewSection = section("text-preview", "File Text Preview");
 const sampleMarkdown = `# Context Management Policy
 
 **Status:** Active policy (2026-02-12)
-**Scope:** How Pi for Excel builds and manages context
+**Scope:** How EV builds and manages context
 
 ## Why this exists
 

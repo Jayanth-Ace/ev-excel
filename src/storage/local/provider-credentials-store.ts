@@ -12,7 +12,7 @@ export interface ProviderKeysStoreLike {
 }
 
 /**
- * Adapts Pi for Excel's existing IndexedDB API-key store to Pi AI's runtime
+ * Adapts EV's existing IndexedDB API-key store to the Pi AI runtime
  * credential contract. Browser OAuth flows continue to refresh their grants in
  * the taskpane and publish the effective access token through ProviderKeysStore.
  */

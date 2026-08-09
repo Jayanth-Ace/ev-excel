@@ -1,10 +1,10 @@
-# Pi for Excel
+# EV for Excel
 
 English | [简体中文](./README.zh-CN.md)
 
-Open-source, multi-model AI sidebar add-in for Microsoft Excel. Powered by [Pi](https://pi.dev).
+Open-source, multi-model AI sidebar add-in for Microsoft Excel. Meet EV: a polished assistant that works with the providers and workflows you already use.
 
-Pi for Excel is an AI agent that lives inside Excel. It reads your workbook, makes changes, and does research — using any model you choose. Bring your own API key or OAuth login for Anthropic, OpenAI, Google Gemini, or GitHub Copilot.
+EV is an AI assistant that lives inside Excel. It reads your workbook, makes changes, and does research — using any model you choose. Bring your own API key or OAuth login for Anthropic, OpenAI, Google Gemini, or GitHub Copilot.
 
 ## Features
 
@@ -64,7 +64,7 @@ Pi for Excel is an AI agent that lives inside Excel. It reads your workbook, mak
 
 1. Download [`manifest.prod.xml`](https://pi-for-excel.vercel.app/manifest.prod.xml)
 2. Add it to Excel — see [**install guide**](docs/install.md) for step-by-step instructions (macOS + Windows)
-3. Click **Open Pi** in the ribbon
+3. Click **Open EV** in the ribbon
 4. Connect a provider (API key or OAuth), or configure a custom OpenAI-compatible gateway in `/settings`
 5. Start chatting — try `What sheets do I have?` or `Summarize my current selection`
 
@@ -95,7 +95,7 @@ mv localhost.pem cert.pem
 npm run dev        # Vite dev server on https://localhost:3141
 ```
 
-> **Note:** the dev port is `3141` (π) — deliberately off the crowded `:3000`.
+> **Note:** the dev port is `3141` — deliberately off the crowded `:3000`.
 > If you sideloaded a manifest before the move from `:3000`, re-copy
 > `manifest.xml` into Excel's `wef` folder and fully restart Excel.
 
@@ -107,7 +107,7 @@ Then sideload the dev manifest into Excel:
 ```bash
 cp manifest.xml ~/Library/Containers/com.microsoft.Excel/Data/Documents/wef/
 ```
-Then open Excel → **Insert** → **My Add-ins** → **Pi for Excel**.
+Then open Excel → **Insert** → **My Add-ins** → **EV**.
 
 **Windows** ([Microsoft docs](https://learn.microsoft.com/en-us/office/dev/add-ins/testing/create-a-network-shared-folder-catalog-for-task-pane-and-content-add-ins)):
 
@@ -116,7 +116,7 @@ Windows desktop Excel can't upload a manifest directly — it installs from a tr
 1. Share a local folder (folder **Properties** → **Sharing** → **Share**) and note its network path.
 2. In Excel: **File** → **Options** → **Trust Center** → **Trust Center Settings** → **Trusted Add-in Catalogs** → add the network path as **Catalog Url**, tick **Show in Menu**, restart Excel.
 3. Copy `manifest.xml` into the shared folder.
-4. **Home** → **Add-ins** → **Advanced** → **SHARED FOLDER** → **Pi for Excel**.
+4. **Home** → **Add-ins** → **Advanced** → **SHARED FOLDER** → **EV**.
 
 **Excel on the web** ([Microsoft docs](https://learn.microsoft.com/en-us/office/dev/add-ins/testing/sideload-office-add-ins-for-testing)):
 
@@ -146,7 +146,7 @@ Some OAuth token endpoints are blocked by CORS inside Office webviews. If OAuth 
 
 1. User setup command: `npx pi-for-excel-proxy` (or `curl -fsSL https://piforexcel.com/proxy | sh` if Node is missing)
 2. Dev/source setup command: `npm run proxy:https` (defaults to `https://localhost:3003`; if 3003 is busy for another service, copy the random port printed in the terminal)
-3. In Pi → `/settings` → **Proxy** → enable and set the printed URL
+3. In EV → `/settings` → **Proxy** → enable and set the printed URL
 4. Retry login
 
 API-key auth generally works without the proxy.
@@ -158,7 +158,7 @@ Use one-command local bridge helpers:
 - Python / LibreOffice bridge: `npx pi-for-excel-python-bridge` (default URL `https://localhost:3340`, real mode)
 - tmux bridge: `npx pi-for-excel-tmux-bridge` (default URL `https://localhost:3341`, real mode)
 
-In Pi, these localhost bridge URLs are used by default. Configure `/experimental ...-bridge-url` only when you want a non-default URL.
+In EV, these localhost bridge URLs are used by default. Configure `/experimental ...-bridge-url` only when you want a non-default URL.
 
 Real-mode prerequisites:
 
@@ -187,7 +187,7 @@ Source-checkout alternatives remain available via `npm run python:bridge:https` 
 
 ## Architecture
 
-Pi for Excel is a single-page Office taskpane add-in built with:
+EV is a single-page Office taskpane add-in built with:
 
 - **[Vite](https://vite.dev/)** — dev server + production bundler
 - **[Lit](https://lit.dev/)** — web components for the sidebar UI
@@ -269,7 +269,7 @@ Users install by downloading `manifest.prod.xml` and uploading it in Excel — t
 
 ## Credits
 
-- [Pi](https://github.com/badlogic/pi-mono) by [@badlogic](https://github.com/badlogic) (Mario Zechner) — the agent framework powering this project. Pi for Excel uses pi-agent-core, pi-ai, and pi-web-ui for the agent loop, LLM abstraction, and session storage.
+- EV uses the open `pi-agent-core`, `pi-ai`, and `pi-web-ui` foundations for the agent loop, LLM abstraction, and session storage.
 - [whimsical.ts](https://github.com/mitsuhiko/agent-stuff/blob/main/pi-extensions/whimsical.ts) by [@mitsuhiko](https://github.com/mitsuhiko) (Armin Ronacher) — the rotating "Working…" messages are adapted from his Pi extension, rewritten for a spreadsheet/finance audience.
 
 ## License

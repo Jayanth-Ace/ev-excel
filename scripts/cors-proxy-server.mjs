@@ -365,11 +365,11 @@ function buildOAuthCallbackHtml(config, capture) {
   const fallbackUrl = capture?.url || "";
   const title = capture ? `${config.label} login captured` : `${config.label} login callback was incomplete`;
   const lead = capture
-    ? "You can return to Pi for Excel. The add-in should continue automatically in a moment."
-    : "Pi for Excel could not find an authorization code in this callback. Return to Pi for Excel and try logging in again.";
+    ? "You can return to EV. The add-in should continue automatically in a moment."
+    : "EV could not find an authorization code in this callback. Return to EV and try logging in again.";
   const closeHint = "This browser tab can be closed.";
   const fallbackBlock = capture
-    ? `<details><summary>If Pi for Excel did not continue automatically</summary><p>Copy this callback URL and paste it into Pi for Excel:</p><code>${htmlEscape(fallbackUrl)}</code></details>`
+    ? `<details><summary>If EV did not continue automatically</summary><p>Copy this callback URL and paste it into EV:</p><code>${htmlEscape(fallbackUrl)}</code></details>`
     : "";
 
   return `<!doctype html>
@@ -377,7 +377,7 @@ function buildOAuthCallbackHtml(config, capture) {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Pi for Excel login captured</title>
+<title>EV login captured</title>
 <style>
   body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #f8faf8; color: #17211b; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
   main { width: min(560px, calc(100vw - 32px)); padding: 28px; border: 1px solid #dfe7df; border-radius: 18px; background: white; box-shadow: 0 18px 55px rgba(15, 23, 18, 0.12); }
@@ -802,7 +802,7 @@ function logStartup(listeningPort, listeningHosts) {
   }
   console.log(`[pi-for-excel] Format: ${proxyUrl}/?url=<target-url>`);
   if (listeningPort !== DEFAULT_PORT) {
-    console.log(`[pi-for-excel] Update Pi for Excel /settings → Proxy URL to ${proxyUrl}`);
+    console.log(`[pi-for-excel] Update EV /settings → Proxy URL to ${proxyUrl}`);
   }
   console.log(`[pi-for-excel] Allowed origins: ${Array.from(allowedOrigins).join(", ")}`);
 

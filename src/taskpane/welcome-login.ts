@@ -84,7 +84,7 @@ export async function showWelcomeLogin(providerKeys: ProviderKeysStore): Promise
     const subtitleId = `${WELCOME_LOGIN_OVERLAY_ID}-subtitle`;
 
     const logo = createElement("div", "pi-welcome-logo");
-    logo.textContent = "π";
+    logo.textContent = t("welcome.logo");
 
     const title = createElement("h2", "pi-welcome-title");
     title.id = titleId;

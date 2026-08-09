@@ -141,7 +141,7 @@ function renderStatusBar(
   const nextMarkup = `
     <div class="pi-status-main">
       <button type="button" class="pi-status-model pi-status-clickable pi-status-tooltip--left" data-tooltip="${escapeAttr(t("status.model.tooltip"))}">
-        <span class="pi-status-model__mark">π</span>
+        <span class="pi-status-model__mark">EV</span>
         <span class="pi-status-model__name">${modelAliasEscaped}</span>
         ${chevronSvg}
       </button>

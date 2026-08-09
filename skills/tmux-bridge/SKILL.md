@@ -52,7 +52,7 @@ Options:
 - `TMUX_BRIDGE_MODE=stub` — safe simulated mode (no real shell execution)
 - `TMUX_BRIDGE_TOKEN=your-secret` — require auth token
 
-### 2. Configure in Pi (usually not needed)
+### 2. Configure in EV (usually not needed)
 
 The default bridge URL (`https://localhost:3341`) works automatically — no configuration required. If you need a custom URL or auth token:
 

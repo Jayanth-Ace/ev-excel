@@ -135,7 +135,7 @@ function openPiTaskpane() {
 function showTaskpaneError(error) {
   const message = error && error.message ? error.message : String(error);
   if (typeof alert === "function") {
-    alert(`Could not open Pi taskpane: ${message}`);
+    alert(`Could not open EV taskpane: ${message}`);
   }
   return true;
 }

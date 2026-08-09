@@ -595,12 +595,12 @@ test("proxy auto-selects a random port when default 3003 is busy and PORT is not
 
   const { stdout, stderr } = second.getLogs();
   const listeningLogCount = stdout.match(/CORS proxy listening on/g)?.length ?? 0;
-  const settingsHintCount = stdout.match(/Update Pi for Excel \/settings → Proxy URL/g)?.length ?? 0;
+  const settingsHintCount = stdout.match(/Update EV \/settings → Proxy URL/g)?.length ?? 0;
   assert.equal(listeningLogCount, 1);
   assert.equal(settingsHintCount, 1);
   assert.match(stderr, /Port 3003 is already in use; choosing a random available port instead\./);
   assert.match(stdout, new RegExp(`CORS proxy listening on http://127\\.0\\.0\\.1:${second.port}`));
-  assert.match(stdout, /Update Pi for Excel \/settings → Proxy URL to http:\/\/127\.0\.0\.1:\d+/);
+  assert.match(stdout, /Update EV \/settings → Proxy URL to http:\/\/127\.0\.0\.1:\d+/);
 });
 
 test("proxy boots with ALLOWED_CLIENT_CIDRS, warns, and still serves loopback", async (t) => {

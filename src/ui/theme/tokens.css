@@ -12,19 +12,19 @@
   --card-foreground: oklch(0.18 0 0);
   --popover: oklch(1 0 0 / 0.85);
   --popover-foreground: oklch(0.18 0 0);
-  --primary: oklch(0.45 0.12 160); /* teal-green */
+  --primary: oklch(0.47 0.13 172); /* EV teal */
   --primary-foreground: oklch(0.98 0 0);
   --secondary: oklch(0.96 0.004 90);
   --secondary-foreground: oklch(0.25 0 0);
   --muted: oklch(0.96 0.003 90);
   --muted-foreground: oklch(0.50 0 0);
   --accent: oklch(0.97 0.006 90);
-  --accent-foreground: oklch(0.30 0.08 160);
+  --accent-foreground: oklch(0.30 0.09 172);
   --destructive: oklch(0.55 0.22 25);
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.92 0.004 90);
   --input: oklch(0.95 0.003 90);
-  --ring: oklch(0.50 0.10 160);
+  --ring: oklch(0.52 0.11 172);
 
   --sidebar: oklch(0.98 0.002 90);
   --sidebar-foreground: oklch(0.18 0 0);
@@ -80,18 +80,18 @@
   --white-alpha-80: oklch(1 0 0 / 0.80);
   --white-alpha-90: oklch(1 0 0 / 0.90);
 
-  --green-alpha-6: oklch(0.45 0.12 160 / 0.06);
-  --green-alpha-12: oklch(0.45 0.12 160 / 0.12);
-  --green-alpha-14: oklch(0.45 0.12 160 / 0.14);
-  --green-alpha-20: oklch(0.45 0.12 160 / 0.20);
-  --green-alpha-25: oklch(0.45 0.12 160 / 0.25);
-  --green-alpha-30: oklch(0.45 0.12 160 / 0.30);
+  --green-alpha-6: oklch(0.47 0.13 172 / 0.06);
+  --green-alpha-12: oklch(0.47 0.13 172 / 0.12);
+  --green-alpha-14: oklch(0.47 0.13 172 / 0.14);
+  --green-alpha-20: oklch(0.47 0.13 172 / 0.20);
+  --green-alpha-25: oklch(0.47 0.13 172 / 0.25);
+  --green-alpha-30: oklch(0.47 0.13 172 / 0.30);
 
   /* ── Our custom tokens ───────────────────────────────── */
   --pi-green: var(--primary);
-  --pi-green-strong: oklch(0.40 0.12 160);
-  --pi-green-light: oklch(0.45 0.12 160 / 0.08);
-  --pi-green-lighter: oklch(0.45 0.12 160 / 0.04);
+  --pi-green-strong: oklch(0.42 0.13 172);
+  --pi-green-light: oklch(0.47 0.13 172 / 0.08);
+  --pi-green-lighter: oklch(0.47 0.13 172 / 0.04);
   --pi-yellow: oklch(0.72 0.16 84);
   --pi-amber: var(--pi-yellow);
   --amber-alpha-8: oklch(0.72 0.16 84 / 0.08);
@@ -155,7 +155,7 @@
   --card-foreground: oklch(0.94 0.005 260);
   --popover: oklch(0.22 0.014 260 / 0.92);
   --popover-foreground: oklch(0.94 0.005 260);
-  --primary: oklch(0.66 0.11 160);
+  --primary: oklch(0.70 0.12 172);
   --primary-foreground: oklch(0.14 0.02 260);
   --secondary: oklch(0.28 0.01 260);
   --secondary-foreground: oklch(0.9 0.004 260);
@@ -167,7 +167,7 @@
   --destructive-foreground: oklch(0.98 0 0);
   --border: oklch(0.33 0.01 260);
   --input: oklch(0.29 0.01 260);
-  --ring: oklch(0.64 0.11 160);
+  --ring: oklch(0.68 0.12 172);
 
   --sidebar: oklch(0.2 0.012 260);
   --sidebar-foreground: oklch(0.94 0.005 260);
@@ -186,9 +186,9 @@
   --alpha-20: oklch(1 0 0 / 0.20);
   --alpha-25: oklch(1 0 0 / 0.25);
 
-  --pi-green-strong: oklch(0.58 0.13 160);
-  --pi-green-light: oklch(0.66 0.12 160 / 0.18);
-  --pi-green-lighter: oklch(0.66 0.12 160 / 0.10);
+  --pi-green-strong: oklch(0.62 0.14 172);
+  --pi-green-light: oklch(0.70 0.13 172 / 0.18);
+  --pi-green-lighter: oklch(0.70 0.13 172 / 0.10);
   --pi-yellow: oklch(0.79 0.14 84);
   --pi-amber: var(--pi-yellow);
   --amber-alpha-8: oklch(0.79 0.14 84 / 0.14);

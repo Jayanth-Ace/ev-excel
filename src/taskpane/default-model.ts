@@ -124,8 +124,15 @@ export function pickDefaultModel(
     if (m) return m;
   }
 
-  if (customDefaultModel) {
-    return customDefaultModel;
+  if (customDefaultModel && availableProviders.includes(customDefaultModel.provider)) {
+    // Rebind persisted selections to the current registry. A provider can
+    // remain configured while its previously selected model is no longer
+    // available; in that case continue through the supported fallbacks.
+    const registeredCustomDefault = modelsRuntime.getModel(
+      customDefaultModel.provider,
+      customDefaultModel.id,
+    );
+    if (registeredCustomDefault) return registeredCustomDefault;
   }
 
   // Any-available-provider fallback (#553): never prefer a model from an

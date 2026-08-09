@@ -113,6 +113,19 @@ void test("agent-end wiring retries reconciliation skipped during an in-flight u
   );
 });
 
+void test("provider refreshes are coalesced to prevent overlapping catalogue races", () => {
+  const initSource = readFileSync(
+    path.resolve(process.cwd(), "src/taskpane/init.ts"),
+    "utf8",
+  );
+
+  assert.match(
+    initSource,
+    /const refreshProvidersAfterChange = createAsyncCoalescer\(async \(\) => \{/u,
+  );
+  assert.match(initSource, /void refreshProvidersAfterChange\(\)\s*\.catch/u);
+});
+
 void test("sets thinkingLevel to off when swapping onto a non-reasoning model", () => {
   const nonReasoning = {
     ...codexModel,

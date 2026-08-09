@@ -1,6 +1,6 @@
 # pi-for-excel-python-bridge
 
-Local HTTPS Python / LibreOffice bridge helper for Pi for Excel.
+Local HTTPS Python / LibreOffice bridge helper for EV.
 
 ## Usage
 
@@ -31,7 +31,7 @@ To force safe simulated mode:
 PYTHON_BRIDGE_MODE=stub npx pi-for-excel-python-bridge
 ```
 
-Then in Pi for Excel:
+Then in EV:
 
 1. The default Python bridge URL is already `https://localhost:3340`
 2. (Optional) set `/experimental python-bridge-url <url>` to use a non-default URL

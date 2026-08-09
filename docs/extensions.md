@@ -1,6 +1,6 @@
 # Extensions (MVP authoring guide)
 
-Pi for Excel supports runtime extensions that can register commands/tools, render UI in the sidebar, and use mediated host capabilities (LLM, HTTP, storage, clipboard, agent steering/context, skills, downloads).
+EV supports runtime extensions that can register commands/tools, render UI in the sidebar, and use mediated host capabilities (LLM, HTTP, storage, clipboard, agent steering/context, skills, downloads).
 
 > Status: shipped with feature flags for advanced controls. Inline-code and remote-URL extensions run in sandbox runtime by default; built-in/local-module extensions stay on host runtime. Roll back untrusted sources to host runtime only via `/experimental on extension-sandbox-rollback`. Additive Widget API v2 is feature-flagged via `/experimental on extension-widget-v2`.
 
@@ -70,9 +70,9 @@ On disable/reload/uninstall, Pi runs cleanup functions (reverse order), then `de
 ### `registerCommand(name, { description, handler, busyAllowed? })`
 Registers a slash command.
 
-- `busyAllowed` controls whether the command can run while Pi is actively streaming/busy.
+- `busyAllowed` controls whether the command can run while EV is actively streaming/busy.
 - Default: `true` for extension commands.
-- Set `busyAllowed: false` when the command should wait until Pi is idle.
+- Set `busyAllowed: false` when the command should wait until EV is idle.
 
 ### `registerTool(name, toolDef)` / `unregisterTool(name)`
 Registers or removes an agent-callable tool.
@@ -184,7 +184,7 @@ export function activate(api) {
 
 `models.refresh()` forces a remote refresh of configured dynamic providers. Cache restoration remains available when the add-in starts offline.
 
-When Pi for Excel's CORS proxy is enabled, extension-provider discovery and inference use it too. The proxy remains independently fail-closed: its deployment allowlist must permit the provider host, in addition to the extension connection's exact host allowlist.
+When EV's CORS proxy is enabled, extension-provider discovery and inference use it too. The proxy remains independently fail-closed: its deployment allowlist must permit the provider host, in addition to the extension connection's exact host allowlist.
 
 ### `agent`
 Agent API surface:

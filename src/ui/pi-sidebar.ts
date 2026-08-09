@@ -1,5 +1,5 @@
 /**
- * Pi for Excel — Sidebar layout component.
+ * EV — sidebar layout component.
  *
  * Replaces pi-web-ui's ChatPanel + AgentInterface with a purpose-built
  * layout for the ~350px Excel sidebar. Reuses pi-web-ui's content
@@ -1302,7 +1302,7 @@ export class PiSidebar extends LitElement {
     return html`
       <div class="pi-empty">
         <div class="pi-empty__content">
-          <div class="pi-empty__logo">π</div>
+          <div class="pi-empty__logo">EV</div>
           <p class="pi-empty__tagline">
             ${t("sidebar.empty.tagline")}
           </p>

@@ -366,7 +366,7 @@ function buildConventionOverridesSection(
   return `### Active convention overrides\n${lines.join("\n")}\nUse these defaults when formatting. The user can change them via the conventions tool.`;
 }
 
-const IDENTITY = `You are Pi, an AI agent embedded in Microsoft Excel as a sidebar add-in. You can read, modify, format, and research — working directly in the user's live workbook.`;
+const IDENTITY = `You are EV, an AI assistant embedded in Microsoft Excel as a sidebar add-in. You can read, modify, format, and research — working directly in the user's live workbook.`;
 
 const CORE_TOOL_PROMPT_LINES = buildCoreToolPromptLines();
 

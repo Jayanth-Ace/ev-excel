@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Pi for Excel</title>
+  <title>EV for Excel</title>
   <meta name="description" content="An open-source AI agent inside Excel. Reads your workbook, makes changes, searches the web — with any model you already use." />
   <link rel="icon" href="/assets/icon-32.png" type="image/png" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -18,7 +18,7 @@
 
   <!-- Nav -->
   <nav>
-    <a href="/" class="nav-mark"><span class="nav-mark__logo">π</span> <span class="nav-mark__text">Pi for Excel</span> <span class="exp-badge">Experimental</span></a>
+    <a href="/" class="nav-mark"><span class="nav-mark__logo">EV</span> <span class="nav-mark__text">EV for Excel</span> <span class="exp-badge">Experimental</span></a>
     <div class="nav-links">
       <a href="#install">Install</a>
       <a href="#connect">Connect</a>
@@ -35,7 +35,7 @@
   <div class="hero">
     <h1>A powerful, open-source agent inside&nbsp;Excel</h1>
     <p class="hero-sub">
-      If you use a &ldquo;coding&rdquo; agent to do research, write reports, or build things: you know they can do way more than write code. Pi for Excel puts some of that power inside your spreadsheets, where you can actually work with it interactively. No account needed: login with wherever you get your AI from.
+      If you use a &ldquo;coding&rdquo; agent to do research, write reports, or build things: you know they can do way more than write code. EV puts that power inside your spreadsheets, where you can actually work with it interactively. No account needed: log in with whichever AI provider you already use.
     </p>
     <a href="#install" class="hero-cta">
       Install it
@@ -54,7 +54,7 @@
         Excel is both your calculator and your interface. This gives your agent that same interface.
       </p>
       <p>
-        Pi for Excel reads the actual workbook: the structure, the formatting, the formulas, your current selection. It doesn't need an export and you can see it work in real time. It's working in the same place you are.
+        EV reads the actual workbook: the structure, the formatting, the formulas, your current selection. It doesn't need an export and you can see it work in real time. It's working in the same place you are.
       </p>
     </div>
 
@@ -86,7 +86,7 @@
         I have very <em>specific</em> opinions about how my spreadsheets are set up. You might too.
       </p>
       <p>
-        Set your format conventions once and they're baked into Pi's tools. Give it <a href="https://agentskills.io/home" target="_blank" rel="noopener">Skills</a> and files. Set house rules for yourself or specific files — like <code>AGENTS.md</code> and <code>CLAUDE.md</code>, but for spreadsheets.
+        Set your format conventions once and they're baked into EV's tools. Give it <a href="https://agentskills.io/home" target="_blank" rel="noopener">Skills</a> and files. Set house rules for yourself or specific files — like <code>AGENTS.md</code> and <code>CLAUDE.md</code>, but for spreadsheets.
       </p>
     </div>
 
@@ -126,7 +126,7 @@
       <div class="section-label">Extensions</div>
       <h3>Ask it to extend itself</h3>
       <p>
-        You can ask Pi for Excel to build its own extensions — sidebar widgets, sub-agents, live data feeds, specialist tools, SaaS integrations. Extensions can call LLMs, fetch HTTP data, persist storage, and register tools through the built-in bridge.
+        You can ask EV to build its own extensions — sidebar widgets, sub-agents, live data feeds, specialist tools, SaaS integrations. Extensions can call LLMs, fetch HTTP data, persist storage, and register tools through the built-in bridge.
       </p>
     </div>
 
@@ -141,7 +141,7 @@
     <div class="section-label">Installation</div>
     <div class="section-title">Three steps, no dev tools</div>
     <p class="section-desc">
-      Download one file, drop it in a folder, open Excel. If you have an agent like Claude Code or <a href="https://pi.dev" target="_blank" rel="noopener">Pi</a> handy, you can just ask it to do all of this for you.
+      Download one file, drop it in a folder, open Excel. If you have an agent like Claude Code handy, you can just ask it to do all of this for you.
     </p>
 
     <div class="os-toggle">
@@ -153,7 +153,7 @@
     <div id="panel-mac" class="os-panel active">
       <div class="card">
         <h3><span class="step-num">1</span> Download the manifest</h3>
-        <p>This small file tells Excel where to find Pi. It's the only thing you need to download.</p>
+        <p>This small file tells Excel where to find EV. It's the only thing you need to download.</p>
         <a href="/manifest.prod.xml" download class="dl-btn">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           manifest.prod.xml
@@ -177,11 +177,11 @@
       </div>
 
       <div class="card">
-        <h3><span class="step-num">3</span> Open Pi in Excel</h3>
+        <h3><span class="step-num">3</span> Open EV in Excel</h3>
         <ol>
           <li>Quit Excel completely (<kbd>⌘Q</kbd>) and reopen it</li>
           <li>Go to <strong>Insert → My Add-ins</strong></li>
-          <li>Click <strong>Pi for Excel</strong> to open the sidebar</li>
+          <li>Click <strong>EV</strong> to open the sidebar</li>
         </ol>
       </div>
     </div>
@@ -189,12 +189,12 @@
     <!-- Windows -->
     <div id="panel-win" class="os-panel">
       <div class="callout callout--windows-note">
-        <strong>Heads up —</strong> Pi was built and tested on macOS. It <em>should</em> work on Windows (the underlying tech is cross-platform) but hasn't been extensively tested. Worth a try! If you hit issues, <a href="https://github.com/tmustier/pi-for-excel/issues" target="_blank" rel="noopener">open a GitHub issue</a>.
+        <strong>Heads up —</strong> EV was built and tested on macOS. It <em>should</em> work on Windows (the underlying tech is cross-platform) but hasn't been extensively tested. Worth a try! If you hit issues, <a href="https://github.com/tmustier/pi-for-excel/issues" target="_blank" rel="noopener">open a GitHub issue</a>.
       </div>
 
       <div class="card">
         <h3><span class="step-num">1</span> Download the manifest</h3>
-        <p>Same file — a small config that tells Excel where to find Pi.</p>
+        <p>Same file — a small config that tells Excel where to find EV.</p>
         <a href="/manifest.prod.xml" download class="dl-btn">
           <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
           manifest.prod.xml
@@ -215,7 +215,7 @@
 
       <div class="card">
         <h3><span class="step-num">3</span> Open the sidebar</h3>
-        <p>Click <strong>Open Pi</strong> in the ribbon.</p>
+        <p>Click <strong>Open EV</strong> in the ribbon.</p>
       </div>
     </div>
   </section>
@@ -260,7 +260,7 @@
       </div>
 
       <p class="connect-option__note">
-        Keep it running while you use Pi. In the sidebar: <span class="path">/settings</span> → Proxy → enable, set URL to <code>https://localhost:3003</code>. Then run <span class="path">/login</span> and sign in.
+        Keep it running while you use EV. In the sidebar: <span class="path">/settings</span> → Proxy → enable, set URL to <code>https://localhost:3003</code>. Then run <span class="path">/login</span> and sign in.
       </p>
 
       <div class="callout">
@@ -279,14 +279,14 @@
 
   <!-- Footer -->
   <footer>
-    <span class="footer-pi">π</span>
+    <span class="footer-pi">EV</span>
     <p>
-      Pi for Excel is free, open source, and <a href="https://github.com/tmustier/pi-for-excel/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a>.
+      EV is free, open source, and <a href="https://github.com/tmustier/pi-for-excel/blob/main/LICENSE" target="_blank" rel="noopener">MIT licensed</a>.
       Updates are automatic — close and reopen the sidebar to get the latest version.
     </p>
     <p class="footer-note">
       Built by <a href="https://github.com/tmustier" target="_blank" rel="noopener">Thomas Mustier</a>.
-      Powered by <a href="https://pi.dev" target="_blank" rel="noopener">Pi</a>, an extensible coding agent by <a href="https://github.com/badlogic" target="_blank" rel="noopener">Mario Zechner</a>.
+      EV is provider-independent and works with the models you already use.
     </p>
   </footer>
 

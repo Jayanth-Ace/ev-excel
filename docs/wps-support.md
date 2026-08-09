@@ -75,11 +75,11 @@ The WPS add-in skeleton lives in [`../wps/`](../wps/):
 
 - `index.html` — WPS add-in entrypoint. Real WPS requests this file from the
   add-in root and it loads `main.js`.
-- `ribbon.xml` — WPS custom ribbon tab/group/button (`Open Pi`). This file must
+- `ribbon.xml` — WPS custom ribbon tab/group/button (`Open EV`). This file must
   live at the add-in root and intentionally starts with `<customUI` because the
   WPS publish-page validator treats an XML declaration prefix as invalid.
 - `main.js` — WPS ribbon interface functions. It creates/toggles a taskpane for
-  the Pi taskpane URL and stores the taskpane id in WPS `PluginStorage` when the
+  the EV taskpane URL and stores the taskpane id in WPS `PluginStorage` when the
   API exposes one. It exposes both `OnAddinLoad` (WPS template spelling) and
   `OnAddInLoad` aliases.
 - `jsplugins.xml.template` — enterprise/OEM list template for the restricted
@@ -120,7 +120,7 @@ For packaging, set/replace `PI_WPS_TASKPANE_URL` (or patch the constant in
    local `publish.xml` entry under:
    - Windows: `%appdata%/kingsoft/wps/jsaddons`
    - Linux: `~/.local/share/Kingsoft/wps/jsaddons`
-6. Restart WPS and open Spreadsheets (ET). The Pi tab should expose **Open Pi**.
+6. Restart WPS and open Spreadsheets (ET). The EV tab should expose **Open EV**.
 
 For the local Windows/QEMU harness, load `publish.html` from guest-localhost
 (`http://127.0.0.1:3889/publish.html`) via a Windows `netsh portproxy` to the
@@ -161,7 +161,7 @@ and complete agent-driven WPS workbook writes/formatting.
 Evidence artifacts from the first smoke run live outside the repo under
 `~/VMs/wps-win11/`, including:
 
-- `wps-click-addin-chevron.png` — Pi tab visible with `Open Pi` button.
+- `wps-click-addin-chevron.png` — EV tab visible with `Open EV` button.
 - `wps-taskpane-after-randomuuid-patch.png` — taskpane initialized in WPS after
   the `crypto.randomUUID` compatibility patch.
 - `wps-after-format-prompt-settle.png` — first authenticated agent write/formatting
@@ -189,7 +189,7 @@ Strict product-level proof is blocked in the current personal WPS
 - Forcing `authaddin.json` to `enable:true` is not a valid product proof. In
   the current VM it loads `manifest.xml`, `index.html`, `main.js`, and
   `js/ribbon.js`, but WPS then creates `jsaddinblockhost.ini`; the Pi tab/button
-  becomes visible with a grey/inert **Open Pi** action. `GetImage` can run
+  becomes visible with a grey/inert **Open EV** action. `GetImage` can run
   (`pi.svg` fetched), while `onAction` does not fire.
 - The same block reproduces with a minimal official-style ET add-in containing
   only `index.html`, `main.js`, `ribbon.xml`, `OnAddinLoad`, and an `OnAction`
@@ -226,8 +226,8 @@ Strict product-level proof is blocked in the current personal WPS
 - On the x86 WPS build, the real Pi WPS add-in also installs and loads when the
   add-in root is served from a stable Windows-local origin. WPS fetches
   `manifest.xml`, `ribbon.xml`, `index.html`, `main.js`, and `js/ribbon.js`,
-  writes `authaddin.enable=true`, shows the real `Pi for Excel` ribbon tab, and
-  `Open Pi` opens the real `/src/taskpane.html` taskpane. The taskpane origin
+  writes `authaddin.enable=true`, shows the real EV ribbon tab, and
+  `Open EV` opens the real `/src/taskpane.html` taskpane. The taskpane origin
   permission prompt is expected in the dev harness (`127.0.0.1` add-in opening
   `10.0.2.2:3141`), and WPS guest access to `/__pi-auth` remains blocked
   (`HTTP 403`).

@@ -3,7 +3,7 @@
 This folder contains **current** docs that should match shipped behavior.
 
 ## Guides
-- [Install Pi for Excel](./install.md)
+- [Install EV](./install.md)
 - [Deploy hosted build on Vercel](./deploy-vercel.md)
 - [Org-hosted central CORS proxy](./central-proxy.md)
 - [Dev server behind portless (opt-in)](./portless.md)

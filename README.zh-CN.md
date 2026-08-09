@@ -1,4 +1,4 @@
-# Pi for Excel
+# EV for Excel
 
 [English](./README.md) | 简体中文
 
@@ -7,7 +7,7 @@
 
 > 本文档是简要中文指南，仅涵盖 **Microsoft Excel 加载项**的**安装**与**模型配置**。完整功能说明、开发者文档等请参阅[英文版 README](./README.md) 与 [docs/](./docs/README.md) 目录。WPS 表格支持另见英文文档 [docs/wps-support.md](./docs/wps-support.md)。
 
-Pi for Excel 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载项,由 [Pi](https://pi.dev) 驱动。
+EV 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载项，支持你已经在使用的模型服务商。
 
 它是一个运行在 Excel 内部的 AI 智能体:能读取你的工作簿、修改内容、进行联网研究——模型由你选择。既支持 Anthropic、OpenAI、Google Gemini、GitHub Copilot 的 API Key 或 OAuth 登录,也支持任何 **OpenAI 兼容接口**(如 DeepSeek、智谱 GLM、Ollama 本地模型等)。
 
@@ -50,7 +50,7 @@ Pi for Excel 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载�
 2. 点击 **插入(Insert)→ 我的加载项(My Add-ins)**
 3. 点击 **上传我的加载项(Upload My Add-in…)**
 4. 选择刚下载的 `manifest.prod.xml`
-5. 在功能区点击 **Open Pi** 打开侧边栏
+5. 在功能区点击 **Open EV** 打开侧边栏
 
 > ⚠️ 请务必通过 **上传我的加载项(Upload My Add-in…)** 安装。
 > 不要通过 **管理 → XML 扩展包(XML Expansion Packs)** 导入——那是旧版 Excel 的功能,会对 Office 加载项清单报出误导性的证书错误。
@@ -66,8 +66,8 @@ Pi for Excel 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载�
    ```
 3. 将 `manifest.prod.xml` 复制到该文件夹
 4. 完全退出 Excel(Cmd + Q)并重新打开
-5. 点击 **插入 → 我的加载项**,应能看到 **Pi for Excel**,点击一次以注册加载项
-6. 在 **开始(Home)** 功能区最右侧找到 **加载项(Add-ins)** 按钮(四个橙色方块图标),点击后选择 **Pi for Excel** 打开侧边栏
+5. 点击 **插入 → 我的加载项**,应能看到 **EV**,点击一次以注册加载项
+6. 在 **开始(Home)** 功能区最右侧找到 **加载项(Add-ins)** 按钮(四个橙色方块图标),点击后选择 **EV** 打开侧边栏
 
 > **文件夹不存在?** 先在终端(Terminal)中运行:
 > ```bash
@@ -83,7 +83,7 @@ Pi for Excel 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载�
 
 ### 3)首次运行检查
 
-1. 打开侧边栏(**开始**功能区的**加载项**按钮 → **Pi for Excel**)
+1. 打开侧边栏(**开始**功能区的**加载项**按钮 → **EV**)
 2. 连接一个模型服务(见下一节)
 3. 发送测试消息,例如:
    - `我当前在哪个工作表?`
@@ -99,7 +99,7 @@ Pi for Excel 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载�
 
 对大多数用户来说,API Key 是最顺畅的方式,通常**无需**代理。
 
-1. 在 Pi 中输入 `/login`(或使用欢迎页)
+1. 在 EV 中输入 `/login`(或使用欢迎页)
 2. 展开某个服务商(OpenAI、Google Gemini、Anthropic 等)
 3. 粘贴你的 API Key
 4. 点击 **Save**
@@ -108,7 +108,7 @@ Pi for Excel 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载�
 
 任何提供 OpenAI 兼容接口的服务都可以接入:
 
-1. 在 Pi 中打开 `/settings`
+1. 在 EV 中打开 `/settings`
 2. 在 **Custom OpenAI-compatible gateways** 下填写:
    - **Endpoint**(接口基础地址 / base URL)
    - **Model**(模型 ID)
@@ -135,7 +135,7 @@ Pi for Excel 是一款开源、多模型的 Microsoft Excel AI 侧边栏加载�
 1. 在 `/login` 中点击 **Login with …**
 2. 在弹出的浏览器窗口中完成登录
 3. 返回 Excel,按提示完成剩余步骤
-   - OpenAI 与 Google 的 OAuth 流程中,浏览器最后会跳到一个显示**"无法访问此网站"**的页面——这是正常现象!复制浏览器地址栏中的完整 URL,粘贴回 Pi for Excel 的提示框即可
+   - OpenAI 与 Google 的 OAuth 流程中,浏览器最后会跳到一个显示**"无法访问此网站"**的页面——这是正常现象!复制浏览器地址栏中的完整 URL,粘贴回 EV 的提示框即可
    - 部分 Google Workspace 套餐还会要求填写 Google Cloud 项目 ID
 
 #### OAuth 登录报 CORS / 网络错误?
@@ -148,13 +148,13 @@ npx pi-for-excel-proxy
 
 (若未安装 Node.js:`curl -fsSL https://piforexcel.com/proxy | sh`)
 
-然后在 Pi 中打开 `/settings` → **Proxy**,启用代理并填入代理启动时打印的 HTTPS 地址(通常是 `https://localhost:3003`; 如端口被占用,会显示另一个本地端口),重试登录。详细说明与排错见[英文安装指南](./docs/install.md#oauth-logins-and-cors-proxy)。API Key 方式一般不需要代理。
+然后在 EV 中打开 `/settings` → **Proxy**,启用代理并填入代理启动时打印的 HTTPS 地址(通常是 `https://localhost:3003`; 如端口被占用,会显示另一个本地端口),重试登录。详细说明与排错见[英文安装指南](./docs/install.md#oauth-logins-and-cors-proxy)。API Key 方式一般不需要代理。
 
 ---
 
 ## 常见问题(简)
 
-- **"我的加载项"里看不到 Pi** —— 重启 Excel 再试;确认上传的是 `manifest.prod.xml`(不是 localhost 开发版清单)
+- **"我的加载项"里看不到 EV** —— 重启 Excel 再试;确认上传的是 `manifest.prod.xml`(不是 localhost 开发版清单)
 - **侧边栏打开但是空白** —— 你的网络可能无法访问 `https://pi-for-excel.vercel.app`,请尝试更换网络或代理设置
 - **如何更新** —— 大多数更新自动生效,关闭并重新打开侧边栏即可;极少数情况(清单变更)需重新下载并上传 `manifest.prod.xml`
 

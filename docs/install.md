@@ -1,4 +1,4 @@
-# Install Pi for Excel
+# Install EV
 
 > 中文用户:简要中文安装与模型配置指南见 [README.zh-CN.md](../README.zh-CN.md)。
 
@@ -33,11 +33,11 @@ Download this file and save it somewhere you can find it (e.g. your Desktop):
    ```
 3. Copy `manifest.prod.xml` into that folder
 4. Quit Excel completely (Cmd + Q) and reopen it
-5. Go to **Insert → My Add-ins** — you should see **Pi for Excel** listed. Click it to register the add-in.
-6. Now look for the **Add-ins** button on the far right of the **Home** ribbon tab (it looks like four orange squares). Click it, then click **Pi for Excel** to open the sidebar.
+5. Go to **Insert → My Add-ins** — you should see **EV** listed. Click it to register the add-in.
+6. Now look for the **Add-ins** button on the far right of the **Home** ribbon tab (it looks like four orange squares). Click it, then click **EV** to open the sidebar.
 
    <img src="../public/assets/add-ins-button.png" width="200" alt="Add-ins button in the Home ribbon tab" />
-   <img src="../public/assets/add-ins-dropdown.png" width="200" alt="Pi for Excel in the Add-ins dropdown" />
+   <img src="../public/assets/add-ins-dropdown.png" width="200" alt="EV in the Add-ins dropdown" />
 
 > **Folder doesn't exist?** Create it first — open Terminal and run:
 > ```bash
@@ -55,7 +55,7 @@ You can try to install and run this on Windows — it might work!
 2. Go to **Insert → My Add-ins**
 3. Click **Upload My Add-in…**
 4. Select the `manifest.prod.xml` file you downloaded
-5. Click **Open Pi** in the ribbon
+5. Click **Open EV** in the ribbon
 
 > ⚠️ Use **Upload My Add-in…** for `manifest.prod.xml`.
 > Do **not** import it via **Manage → XML Expansion Packs** — that is a legacy Excel path and can surface misleading certificate errors for Office add-in manifests.
@@ -81,7 +81,7 @@ For more detail, see [Microsoft's guide for Windows](https://learn.microsoft.com
 
 ## 3) First-run check
 
-1. Open the taskpane (click the **Add-ins** button in the Home ribbon tab, then click **Pi for Excel**)
+1. Open the taskpane (click the **Add-ins** button in the Home ribbon tab, then click **EV**)
 2. Connect a provider (see below)
 3. Send a test prompt, e.g.:
    - `What sheet am I currently on?`
@@ -97,7 +97,7 @@ If you get a response, install is complete.
 
 For most users, API keys are the smoothest setup and usually do **not** need the proxy.
 
-1. In Pi, run `/login` (or use the welcome screen)
+1. In EV, run `/login` (or use the welcome screen)
 2. Expand a provider row (OpenAI, Google Gemini, Anthropic, etc.)
 3. Paste your API key
 4. Click **Save**
@@ -106,7 +106,7 @@ For most users, API keys are the smoothest setup and usually do **not** need the
 
 Use this when your org exposes an OpenAI-compatible endpoint (or for local OpenAI-compatible servers).
 
-1. In Pi, open `/settings`
+1. In EV, open `/settings`
 2. Under **Custom OpenAI-compatible gateways**, set:
    - **Endpoint** (base URL)
    - **Model** (model ID)
@@ -123,7 +123,7 @@ Notes:
 2. Complete login in the browser window that opens
 3. Return to Excel and complete any prompt shown
    - With the local proxy running, ChatGPT, Anthropic, and Google OAuth should continue automatically after the browser redirects to localhost.
-   - If automatic capture is unavailable, your browser may land on a page that says **"can't be reached"** — that's normal! Copy the full URL from the browser address bar and paste it when prompted in Pi for Excel.
+   - If automatic capture is unavailable, your browser may land on a page that says **"can't be reached"** — that's normal! Copy the full URL from the browser address bar and paste it when prompted in EV.
    - Some Google workspace tiers may also ask for a Google Cloud project ID during setup
 
 If login fails with a CORS/network error, follow the next section.
@@ -159,7 +159,7 @@ If you do not have Node.js (or are unsure):
 curl -fsSL https://piforexcel.com/proxy | sh
 ```
 
-2. In Pi, open `/settings` → **Proxy**:
+2. In EV, open `/settings` → **Proxy**:
    - enable **Proxy**
    - set URL to the URL printed by the proxy (normally `https://localhost:3003`; if 3003 is busy for another service, it will choose a random free port and print that URL)
 
@@ -197,7 +197,7 @@ PORT=3005 npx pi-for-excel-proxy
 
 ## Updates
 
-If you installed with `manifest.prod.xml`, Pi for Excel loads from a hosted URL and most updates are automatic.
+If you installed with `manifest.prod.xml`, EV loads from a hosted URL and most updates are automatic.
 
 - Normal case: close/reopen Excel taskpane to pick up latest version.
 - Rare case (manifest changes): download the new `manifest.prod.xml` and upload it again in Excel.
@@ -206,7 +206,7 @@ If you installed with `manifest.prod.xml`, Pi for Excel loads from a hosted URL 
 
 ## Troubleshooting
 
-### Pi does not appear in My Add-ins
+### EV does not appear in My Add-ins
 - Re-open Excel and try again
 - Ensure you uploaded `manifest.prod.xml` (not the localhost dev manifest)
 
@@ -216,7 +216,7 @@ If you installed with `manifest.prod.xml`, Pi for Excel loads from a hosted URL 
 - If you already tried the XML Expansion Packs path, close Excel and repeat the upload flow above
 
 ### Taskpane opens but is blank
-- Your network may block `https://pi-for-excel.vercel.app`
+- Your network may block the configured EV hosting URL
 - Try a different network / VPN setting
 
 ### I installed, but changes are not visible

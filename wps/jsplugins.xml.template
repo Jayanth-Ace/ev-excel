@@ -9,7 +9,7 @@
 -->
 <jsplugins>
   <jsplugin
-    name="Pi for Excel"
+    name="EV"
     type="et"
     version="0.10.0-pre"
     url="{{ADDIN_BASE_URL}}/" />

@@ -1,6 +1,6 @@
 # Deploy hosted build on Vercel (maintainers)
 
-Pi for Excel’s taskpane is a static site built by Vite (`dist/`).
+EV’s taskpane is a static site built by Vite (`dist/`).
 
 Vercel is a good default host because it’s free for OSS/hobby usage and handles HTTPS + caching well.
 

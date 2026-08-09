@@ -17,9 +17,9 @@ Validate all H-1 failure paths produce clear, recoverable UX:
 ## Pre-run setup
 
 1. Start from clean add-in state (Excel fully quit/reopen).
-2. Sideload latest manifest and open Pi taskpane.
+2. Sideload latest manifest and open EV taskpane.
 3. Ensure screenshot path exists, e.g. `~/Desktop/pi-h1-<date>/`.
-4. In Pi:
+4. In EV:
    - open `/tools` (alias: `/integrations`)
    - enable `Allow external tools (web search / MCP)`
    - enable web search for this session

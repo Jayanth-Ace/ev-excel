@@ -277,7 +277,7 @@ async function exitIfDefaultProxyAlreadyRunning(proxyConfig) {
     console.error(`[pi-for-excel-proxy] ${DEFAULT_PROXY_URL}/healthz: ${describeProbe(localhostProbe)}`);
     console.error(`[pi-for-excel-proxy] https://127.0.0.1:${DEFAULT_PROXY_PORT}/healthz: ${describeProbe(ipv4Probe)}`);
     console.error("[pi-for-excel-proxy] Stop old pi-for-excel proxy processes, then run npx pi-for-excel-proxy again.");
-    console.error("[pi-for-excel-proxy] Or set PORT=<free-port> and copy that URL into Pi for Excel /settings → Proxy.");
+    console.error("[pi-for-excel-proxy] Or set PORT=<free-port> and copy that URL into EV /settings → Proxy.");
     process.exit(1);
   }
 }
